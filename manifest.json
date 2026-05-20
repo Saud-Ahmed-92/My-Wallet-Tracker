@@ -2,7 +2,7 @@
   "name": "Paisa Tracker",
   "short_name": "Paisa",
   "description": "Monthly salary & budget tracker",
-  "start_url": "/My-Wallet-Tracker/",
+  "start_url": "/My-Wallet-Tracker/?v=3",
   "scope": "/My-Wallet-Tracker/",
   "display": "standalone",
   "background_color": "#0f172a",
