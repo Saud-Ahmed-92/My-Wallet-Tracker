@@ -2,611 +2,1087 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0f172a">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0a0f1e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Paisa">
-<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Paisa Tracker">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
 <title>Paisa Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0f172a;
-    --surface: #1e293b;
-    --surface2: #334155;
-    --accent: #38bdf8;
-    --accent2: #a78bfa;
-    --green: #34d399;
-    --danger: #f87171;
-    --warn: #fbbf24;
-    --text: #f1f5f9;
-    --muted: #94a3b8;
-    --border: #334155;
-    --r: 14px;
-    --rs: 8px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; padding-bottom: 80px; overscroll-behavior: none; }
-  .header { background: var(--surface); padding: 16px 20px 12px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
-  .header h1 { font-size: 20px; font-weight: 700; }
-  .header h1 span { color: var(--accent); }
-  .header-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 61px; z-index: 99; }
-  .tab { flex: 1; padding: 12px 0; text-align: center; font-size: 13px; font-weight: 500; color: var(--muted); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; }
-  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .page { display: none; padding: 14px; }
-  .page.active { display: block; }
-  .card { background: var(--surface); border-radius: var(--r); padding: 16px; margin-bottom: 12px; border: 1px solid var(--border); }
-  .card-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 12px; font-weight: 600; }
-  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-  .stat { background: var(--surface2); border-radius: var(--rs); padding: 12px; }
-  .stat-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
-  .stat-val { font-size: 20px; font-weight: 700; }
-  .c-accent { color: var(--accent); }
-  .c-green { color: var(--green); }
-  .c-warn { color: var(--warn); }
-  .c-purple { color: var(--accent2); }
-  .c-danger { color: var(--danger); }
-  .c-text { color: var(--text); }
-  .prog-wrap { margin-bottom: 10px; }
-  .prog-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
-  .prog-bar { height: 8px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
-  .prog-fill { height: 100%; border-radius: 99px; transition: width 0.4s; }
-  .pf-fuel { background: var(--accent); }
-  .pf-save { background: var(--green); }
-  .form-group { margin-bottom: 12px; }
-  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; font-weight: 500; }
-  input[type=number], input[type=text], select {
-    width: 100%; background: var(--surface2); border: 1px solid var(--border);
-    color: var(--text); border-radius: var(--rs); padding: 11px 12px;
-    font-size: 15px; outline: none;
-  }
-  input:focus, select:focus { border-color: var(--accent); }
-  input::placeholder { color: var(--muted); }
-  select option { background: var(--surface2); }
-  .chk-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .chk-row input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
-  .chk-row label { margin: 0; font-size: 13px; color: var(--text); cursor: pointer; }
-  .btn { border: none; border-radius: var(--rs); padding: 13px 20px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; transition: opacity 0.15s, transform 0.1s; }
-  .btn:active { transform: scale(0.98); opacity: 0.85; }
-  .btn-primary { background: var(--accent); color: #0f172a; }
-  .btn-green { background: var(--green); color: #0f172a; }
-  .btn-danger { background: var(--danger); color: #fff; }
-  .btn-sm { padding: 8px 14px; font-size: 13px; width: auto; border-radius: 6px; background: var(--surface2); color: var(--text); border: 1px solid var(--border); cursor: pointer; }
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .alert { border-radius: var(--rs); padding: 10px 14px; font-size: 13px; margin-bottom: 12px; border-left: 3px solid; }
-  .alert-warn { background: rgba(251,191,36,0.1); border-color: var(--warn); color: var(--warn); }
-  .alert-green { background: rgba(52,211,153,0.1); border-color: var(--green); color: var(--green); }
-  .alert-info { background: rgba(56,189,248,0.1); border-color: var(--accent); color: var(--accent); }
-  .exp-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
-  .exp-row:last-child { border-bottom: none; }
-  .exp-cat { font-size: 11px; font-weight: 700; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .exp-note { font-size: 12px; color: var(--muted); }
-  .exp-amt { font-size: 16px; font-weight: 700; }
-  .del-btn { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 4px 8px; line-height: 1; }
-  .del-btn:active { color: var(--danger); }
-  .sum-line { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; border-bottom: 1px solid var(--border); }
-  .sum-line:last-child { border-bottom: none; }
-  .sum-line.bold { font-weight: 700; font-size: 15px; }
-  .hist-item { background: var(--surface2); border-radius: var(--rs); padding: 12px; margin-bottom: 8px; }
-  .hist-date-header { font-size: 12px; color: var(--muted); font-weight: 600; margin: 14px 0 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .badge { display: inline-block; padding: 3px 8px; border-radius: 99px; font-size: 11px; font-weight: 700; }
-  .bdg-fuel { background: rgba(56,189,248,0.15); color: var(--accent); }
-  .bdg-save { background: rgba(52,211,153,0.15); color: var(--green); }
-  .bdg-cash { background: rgba(167,139,250,0.15); color: var(--accent2); }
-  .bdg-sal { background: rgba(52,211,153,0.2); color: var(--green); }
-  .big-num { font-size: 30px; font-weight: 800; letter-spacing: -1px; }
-  .center { text-align: center; }
-  .empty { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 14px; }
-  .empty-icon { font-size: 36px; margin-bottom: 8px; }
-  .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(10px); background: var(--surface2); color: var(--text); padding: 10px 22px; border-radius: 99px; font-size: 13px; opacity: 0; transition: all 0.25s; pointer-events: none; z-index: 9999; white-space: nowrap; border: 1px solid var(--border); }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .divider { height: 1px; background: var(--border); margin: 12px 0; }
-  .install-banner { background: linear-gradient(135deg, #1e3a5f, #1e293b); border: 1px solid var(--accent); border-radius: var(--r); padding: 14px; margin-bottom: 14px; display: none; }
-  .install-banner.show { display: block; }
+:root{
+  --bg:#0a0f1e;--bg2:#0f172a;--surface:#1a2236;--surface2:#1e2d45;--border:#263352;
+  --accent:#38bdf8;--purple:#818cf8;--green:#34d399;--amber:#fbbf24;--pink:#f472b6;
+  --red:#f87171;--text:#f1f5f9;--muted:#64748b;--muted2:#94a3b8;
+  --r:16px;--rs:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+body{display:flex;flex-direction:column;max-width:430px;margin:0 auto;position:relative;}
+
+/* HEADER */
+.hdr{padding:16px 18px 8px;display:flex;align-items:center;justify-content:space-between;background:var(--bg);}
+.hdr-left h1{font-size:20px;font-weight:800;letter-spacing:-.3px;}
+.hdr-left h1 span{color:var(--accent);}
+.hdr-left p{font-size:11px;color:var(--muted2);margin-top:1px;}
+.month-chip{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--muted2);}
+
+/* TABS (top nav) */
+.top-nav{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+.top-nav::-webkit-scrollbar{display:none;}
+.tn-btn{flex:none;padding:12px 18px;font-size:13px;font-weight:600;color:var(--muted);background:none;border:none;font-family:inherit;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;}
+.tn-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* SCREENS */
+.screen{display:none;overflow-y:auto;padding:14px 16px 90px;height:calc(100vh - 105px);}
+.screen.active{display:block;}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;}
+.card-hd{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+
+/* MONEY BOXES */
+.money-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.money-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:13px 12px;}
+.money-box.wide{grid-column:1/-1;}
+.mb-label{font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;display:flex;align-items:center;gap:4px;}
+.mb-val{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;}
+.mb-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+
+/* BUDGET CARDS */
+.bcard{border-radius:var(--r);padding:15px;margin-bottom:10px;border:1px solid;}
+.bcard.fuel{background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(251,191,36,.03));border-color:rgba(251,191,36,.2);}
+.bcard.saving{background:linear-gradient(135deg,rgba(52,211,153,.08),rgba(52,211,153,.03));border-color:rgba(52,211,153,.2);}
+.bcard.free{background:linear-gradient(135deg,rgba(244,114,182,.08),rgba(244,114,182,.03));border-color:rgba(244,114,182,.2);}
+.bcard-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.bcard-title{font-size:13px;font-weight:700;}
+.bcard-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;}
+.fuel .bcard-badge{background:rgba(251,191,36,.15);color:var(--amber);}
+.saving .bcard-badge{background:rgba(52,211,153,.15);color:var(--green);}
+.free .bcard-badge{background:rgba(244,114,182,.15);color:var(--pink);}
+.bcard-bar{height:6px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:8px;}
+.bcard-fill{height:100%;border-radius:99px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+.fuel .bcard-fill{background:var(--amber);}
+.saving .bcard-fill{background:var(--green);}
+.free .bcard-fill{background:var(--pink);}
+.bcard-nums{display:flex;gap:0;}
+.bcard-num{flex:1;text-align:center;}
+.bcard-num:not(:last-child){border-right:1px solid var(--border);}
+.bcard-nlabel{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.bcard-nval{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;}
+
+/* PROGRESS LABEL */
+.prog-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px;}
+
+/* ALERT */
+.alert{border-radius:var(--rs);padding:10px 14px;font-size:13px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.alert-warn{background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.25);}
+.alert-ok{background:rgba(52,211,153,.1);color:var(--green);border:1px solid rgba(52,211,153,.25);}
+.alert-info{background:rgba(56,189,248,.1);color:var(--accent);border:1px solid rgba(56,189,248,.25);}
+.alert-pink{background:rgba(244,114,182,.1);color:var(--pink);border:1px solid rgba(244,114,182,.25);}
+#alert-zone{margin-top:2px;}
+
+/* SECTION TITLE */
+.stitle{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:14px 0 8px;}
+
+/* FORM */
+.fg{margin-bottom:12px;}
+.fl{font-size:12px;color:var(--muted2);margin-bottom:5px;display:block;font-weight:600;}
+.fi{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:11px 13px;color:var(--text);font-family:'Inter',sans-serif;font-size:15px;outline:none;transition:border-color .2s;}
+.fi:focus{border-color:var(--accent);}
+select.fi{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* ENTRY TYPE PICKER */
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.type-btn{padding:12px 8px;border-radius:var(--rs);border:2px solid var(--border);background:var(--bg2);color:var(--muted2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;text-align:center;transition:all .2s;line-height:1.3;}
+.type-btn.sel{border-color:var(--accent);background:rgba(56,189,248,.1);color:var(--accent);}
+.type-btn.sel.fuel-c{border-color:var(--amber);background:rgba(251,191,36,.1);color:var(--amber);}
+.type-btn.sel.save-c{border-color:var(--green);background:rgba(52,211,153,.1);color:var(--green);}
+.type-btn.sel.free-c{border-color:var(--pink);background:rgba(244,114,182,.1);color:var(--pink);}
+.type-btn.sel.xfer-c{border-color:var(--purple);background:rgba(129,140,.248,.1);color:var(--purple);}
+.type-btn span{display:block;font-size:18px;margin-bottom:3px;}
+
+/* BTN */
+.btn{width:100%;padding:13px;border-radius:var(--rs);border:none;font-family:'Inter',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;letter-spacing:-.1px;}
+.btn:active{transform:scale(.98);opacity:.85;}
+.btn-primary{background:var(--accent);color:#0a0f1e;}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-sec{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+
+/* LOG ITEMS */
+.log-item{display:flex;justify-content:space-between;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--border);}
+.log-item:last-child{border-bottom:none;}
+.li-left{flex:1;min-width:0;}
+.li-date{font-size:10px;color:var(--muted);margin-bottom:2px;}
+.li-note{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.li-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
+.tag{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:600;}
+.tf{background:rgba(251,191,36,.15);color:var(--amber);}
+.ts{background:rgba(52,211,153,.15);color:var(--green);}
+.tp{background:rgba(244,114,182,.15);color:var(--pink);}
+.tc{background:rgba(56,189,248,.15);color:var(--accent);}
+.tpu{background:rgba(129,140,248,.15);color:var(--purple);}
+.li-right{display:flex;align-items:center;gap:6px;margin-left:8px;flex-shrink:0;}
+.li-amt{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;}
+.li-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 3px;line-height:1;}
+
+/* HISTORY MONTH CARD */
+.hist-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden;}
+.hist-header{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.hist-title{font-size:14px;font-weight:700;}
+.hist-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;}
+.hist-body{padding:0 16px 14px;display:none;}
+.hist-body.open{display:block;}
+.hrow{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.hrow:last-child{border-bottom:none;}
+
+/* SETTING ROW */
+.srow{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);}
+.srow:last-child{border-bottom:none;}
+.srow-l{font-size:14px;font-weight:500;}
+.srow-sub{font-size:12px;color:var(--muted);margin-top:1px;}
+
+/* TOAST */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:9px 18px;font-size:13px;font-weight:600;z-index:999;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;max-width:90vw;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* INSTALL BANNER */
+#inst{background:var(--accent);color:#0a0f1e;padding:10px;text-align:center;font-size:13px;font-weight:700;cursor:pointer;display:none;}
+
+/* TODAY ENTRY HIGHLIGHT */
+.today-dot{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;margin-right:5px;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+/* DIVIDER */
+.dvd{border:none;border-top:1px solid var(--border);margin:10px 0;}
+
+/* Salary status bar */
+.sal-status{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.sal-status-label{font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.8px;}
+.sal-status-val{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--accent);}
+
+/* Transfer arrow */
+.xfer-arrow{text-align:center;font-size:20px;margin:8px 0;}
+
+.empty{text-align:center;padding:30px 20px;color:var(--muted);font-size:14px;}
+.row-d{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.row-d:last-child{border-bottom:none;}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <h1>💸 <span>Paisa</span> Tracker</h1>
-  <div class="header-sub" id="hdate"></div>
+<div id="inst" onclick="installApp()">📲 Tap to install Paisa Tracker</div>
+
+<div class="hdr">
+  <div class="hdr-left">
+    <h1>💸 Paisa <span>Tracker</span></h1>
+    <p id="hdr-date">Monday, 15 June 2026</p>
+  </div>
+  <div class="month-chip" id="month-label">Jun 2026</div>
 </div>
 
-<div class="tabs">
-  <button class="tab active" onclick="nav('dashboard')">Dashboard</button>
-  <button class="tab" onclick="nav('entry')">+ Entry</button>
-  <button class="tab" onclick="nav('history')">History</button>
-  <button class="tab" onclick="nav('setup')">Setup</button>
+<div class="top-nav">
+  <button class="tn-btn active" onclick="showScreen('dashboard')" id="tn-dashboard">Dashboard</button>
+  <button class="tn-btn" onclick="showScreen('entry')" id="tn-entry">+ Entry</button>
+  <button class="tn-btn" onclick="showScreen('history')" id="tn-history">History</button>
+  <button class="tn-btn" onclick="showScreen('setup')" id="tn-setup">Setup</button>
 </div>
 
-<!-- DASHBOARD -->
-<div id="pg-dashboard" class="page active">
-  <div id="dash"></div>
+<!-- ═══════════ DASHBOARD ═══════════ -->
+<div class="screen active" id="screen-dashboard">
+  <div id="alert-zone"></div>
+
+  <div class="stitle">💰 My Money</div>
+  <div class="card" style="padding:14px;">
+    <div class="money-grid">
+      <div class="money-box">
+        <div class="mb-label">🌐 Online Bank</div>
+        <div class="mb-val" id="d-online" style="color:var(--accent)">0</div>
+      </div>
+      <div class="money-box">
+        <div class="mb-label">👛 Wallet / Cash</div>
+        <div class="mb-val" id="d-wallet" style="color:var(--amber)">0</div>
+      </div>
+    </div>
+    <div style="text-align:center;padding:10px 0 4px;">
+      <div style="font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Total Available</div>
+      <div class="mb-val" id="d-total" style="color:var(--green);font-size:26px;">0</div>
+    </div>
+  </div>
+
+  <div class="stitle">📊 Budget This Month</div>
+
+  <div class="bcard fuel">
+    <div class="bcard-top">
+      <div class="bcard-title">⛽ Fuel Budget</div>
+      <div class="bcard-badge" id="fuel-pct-badge">0%</div>
+    </div>
+    <div class="prog-label"><span id="fuel-prog-l">Spent: Rs 0</span><span id="fuel-prog-r">0% of Rs 0</span></div>
+    <div class="bcard-bar"><div class="bcard-fill" id="fuel-bar" style="width:0%"></div></div>
+    <div class="bcard-nums">
+      <div class="bcard-num"><div class="bcard-nlabel">Budget</div><div class="bcard-nval" style="color:var(--amber)" id="bn-f-b">0</div></div>
+      <div class="bcard-num"><div class="bcard-nlabel">Spent</div><div class="bcard-nval" style="color:var(--red)" id="bn-f-s">0</div></div>
+      <div class="bcard-num"><div class="bcard-nlabel">Left</div><div class="bcard-nval" style="color:var(--amber)" id="bn-f-l">0</div></div>
+    </div>
+  </div>
+
+  <div class="bcard saving">
+    <div class="bcard-top">
+      <div class="bcard-title">💚 Saving Budget</div>
+      <div class="bcard-badge" id="save-pct-badge">0%</div>
+    </div>
+    <div class="prog-label"><span id="save-prog-l">Spent: Rs 0</span><span id="save-prog-r">0% of Rs 0</span></div>
+    <div class="bcard-bar"><div class="bcard-fill" id="save-bar" style="width:0%"></div></div>
+    <div class="bcard-nums">
+      <div class="bcard-num"><div class="bcard-nlabel">Goal</div><div class="bcard-nval" style="color:var(--green)" id="bn-s-b">0</div></div>
+      <div class="bcard-num"><div class="bcard-nlabel">Spent</div><div class="bcard-nval" style="color:var(--red)" id="bn-s-s">0</div></div>
+      <div class="bcard-num"><div class="bcard-nlabel">Left</div><div class="bcard-nval" style="color:var(--green)" id="bn-s-l">0</div></div>
+    </div>
+  </div>
+
+  <div class="bcard free">
+    <div class="bcard-top">
+      <div class="bcard-title">🎉 Free / Extra Cash</div>
+      <div class="bcard-badge" id="free-pct-badge">0 used</div>
+    </div>
+    <div class="prog-label"><span id="free-prog-l">Spent: Rs 0</span><span id="free-prog-r">Available: Rs 0</span></div>
+    <div class="bcard-bar"><div class="bcard-fill" id="free-bar" style="width:0%"></div></div>
+    <div class="bcard-nums">
+      <div class="bcard-num"><div class="bcard-nlabel">Total In</div><div class="bcard-nval" style="color:var(--pink)" id="bn-p-b">0</div></div>
+      <div class="bcard-num"><div class="bcard-nlabel">Spent</div><div class="bcard-nval" style="color:var(--red)" id="bn-p-s">0</div></div>
+      <div class="bcard-num"><div class="bcard-nlabel">Left</div><div class="bcard-nval" style="color:var(--pink)" id="bn-p-l">0</div></div>
+    </div>
+  </div>
+
+  <div class="stitle">📅 Today — <span id="today-label"></span></div>
+  <div id="today-log" class="card"><div class="empty" style="padding:16px">📝 No entries today yet.</div></div>
+
+  <div class="stitle">Recent Activity</div>
+  <div class="card" id="recent-log"><div class="empty">No entries yet.</div></div>
 </div>
 
-<!-- ENTRY -->
-<div id="pg-entry" class="page">
+<!-- ═══════════ ENTRY ═══════════ -->
+<div class="screen" id="screen-entry">
+  <div class="card" style="margin-top:2px;">
+    <div class="card-hd">📋 Record an Entry</div>
+    <div class="fg">
+      <label class="fl">📅 Date (default: today)</label>
+      <input class="fi" type="date" id="e-date">
+    </div>
+
+    <div class="fg">
+      <label class="fl">Entry Type</label>
+      <div class="type-grid" id="type-grid">
+        <button class="type-btn sel fuel-c" data-type="expense-fuel" onclick="selType(this)"><span>⛽</span>Fuel Expense</button>
+        <button class="type-btn save-c" data-type="expense-saving" onclick="selType(this)"><span>💚</span>Saving Expense</button>
+        <button class="type-btn free-c" data-type="expense-free" onclick="selType(this)"><span>🎉</span>Free Cash Expense</button>
+        <button class="type-btn" data-type="cashout" onclick="selType(this)"><span>🏧</span>Cash Out (Online→Wallet)</button>
+        <button class="type-btn" data-type="salary" onclick="selType(this)"><span>🎊</span>Received Salary</button>
+        <button class="type-btn" data-type="cash-in-wallet" onclick="selType(this)"><span>👛</span>Cash Received (Wallet)</button>
+        <button class="type-btn" data-type="cash-in-online" onclick="selType(this)"><span>🌐</span>Money In (Online)</button>
+        <button class="type-btn tpu" data-type="transfer" onclick="selType(this)"><span>🔄</span>Budget Transfer</button>
+        <button class="type-btn" data-type="free-deposit" onclick="selType(this)"><span>💰</span>Free Cash Deposit</button>
+        <button class="type-btn" data-type="free-withdraw" onclick="selType(this)"><span>💸</span>Free Cash Withdraw</button>
+      </div>
+    </div>
+
+    <!-- DYNAMIC FORM AREA -->
+    <div id="entry-form"></div>
+
+    <button class="btn btn-primary" onclick="saveEntry()" style="margin-top:4px;">✓ Save Entry</button>
+  </div>
+
+  <div class="stitle">This Month's Log</div>
+  <div class="card" id="full-log"><div class="empty">No entries yet.</div></div>
+</div>
+
+<!-- ═══════════ HISTORY ═══════════ -->
+<div class="screen" id="screen-history">
+  <div class="stitle" style="margin-top:4px;">Month-by-Month History</div>
+  <div id="history-list"><div class="empty">No history yet.</div></div>
+</div>
+
+<!-- ═══════════ SETUP ═══════════ -->
+<div class="screen" id="screen-setup">
+  <div class="stitle" style="margin-top:4px;">Salary & Budgets</div>
   <div class="card">
-    <div class="card-title">Record an Entry</div>
-    <div class="form-group">
-      <label>📅 Date (default: today)</label>
-      <input type="date" id="edate" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--rs);padding:11px 12px;font-size:15px;outline:none;">
+    <div class="fg">
+      <label class="fl">Monthly Salary (Rs)</label>
+      <input class="fi" type="number" id="set-salary" placeholder="e.g. 20000" inputmode="numeric">
     </div>
-    <div class="form-group">
-      <label>Type</label>
-      <select id="etype" onchange="etypeChange()">
-        <option value="expense">💸 Expense (Petrol / Saving)</option>
-        <option value="cashout">💳 Cash Out from Online Bank</option>
-        <option value="salary">🎉 Received Salary</option>
-        <option value="walletin">👛 Cash Received (into Wallet)</option>
-        <option value="onlinein">🌐 Money Received (into Online Bank)</option>
-      </select>
+    <div class="fg">
+      <label class="fl">⛽ Fuel Budget (Rs)</label>
+      <input class="fi" type="number" id="set-fuel" placeholder="e.g. 15000" inputmode="numeric">
     </div>
-
-    <div id="f-expense">
-      <div class="form-group">
-        <label>Budget Category</label>
-        <select id="ecat">
-          <option value="petrol">⛽ Petrol / Fuel</option>
-          <option value="saving">💚 Saving (Food, etc.)</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Amount (Rs)</label>
-        <input type="number" id="eamt" placeholder="e.g. 3230" inputmode="decimal">
-      </div>
-      <div class="form-group">
-        <label>Note (optional)</label>
-        <input type="text" id="enote" placeholder="e.g. Shell petrol, KFC lunch">
-      </div>
-      <div class="divider"></div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">How did you pay? (select to update balance)</div>
-      <div class="chk-row">
-        <input type="checkbox" id="c-online">
-        <label for="c-online">Paid from Online Bank (deduct from online balance)</label>
-      </div>
-      <div class="chk-row">
-        <input type="checkbox" id="c-wallet">
-        <label for="c-wallet">Paid from Wallet / Cash</label>
-      </div>
+    <div class="fg">
+      <label class="fl">💚 Saving Goal (Rs)</label>
+      <input class="fi" type="number" id="set-saving" placeholder="e.g. 5000" inputmode="numeric">
     </div>
-
-    <div id="f-cashout" style="display:none">
-      <div class="alert alert-info">Money moves: Online Bank → Wallet. Online goes down, Wallet goes up.</div>
-      <div class="form-group">
-        <label>Amount to Cash Out (Rs)</label>
-        <input type="number" id="coamt" placeholder="e.g. 5000" inputmode="decimal">
-      </div>
+    <div style="background:var(--bg2);border-radius:var(--rs);padding:11px 13px;margin-bottom:12px;font-size:13px;">
+      <div id="set-check" style="color:var(--muted2)">Enter values above.</div>
     </div>
-
-    <div id="f-salary" style="display:none">
-      <div class="alert alert-green">Set salary amount and your budget split for this month.</div>
-      <div class="form-group">
-        <label>Salary Amount (Rs)</label>
-        <input type="number" id="salamt" placeholder="e.g. 20000" inputmode="decimal">
-      </div>
-      <div class="form-group">
-        <label>Received in</label>
-        <select id="saldest">
-          <option value="online">Online Bank</option>
-          <option value="wallet">Cash / Wallet</option>
-        </select>
-      </div>
-      <div class="row2">
-        <div class="form-group">
-          <label>⛽ Fuel Budget</label>
-          <input type="number" id="salfuel" placeholder="e.g. 15000" inputmode="decimal">
-        </div>
-        <div class="form-group">
-          <label>💚 Saving Budget</label>
-          <input type="number" id="salsave" placeholder="e.g. 5000" inputmode="decimal">
-        </div>
-      </div>
-    </div>
-
-    <div id="f-walletin" style="display:none">
-      <div class="form-group">
-        <label>Amount (Rs)</label>
-        <input type="number" id="wiamt" placeholder="e.g. 500" inputmode="decimal">
-      </div>
-      <div class="form-group">
-        <label>Note</label>
-        <input type="text" id="winote" placeholder="e.g. From friend">
-      </div>
-    </div>
-
-    <div id="f-onlinein" style="display:none">
-      <div class="form-group">
-        <label>Amount (Rs)</label>
-        <input type="number" id="oiamt" placeholder="e.g. 1000" inputmode="decimal">
-      </div>
-      <div class="form-group">
-        <label>Note</label>
-        <input type="text" id="oinote" placeholder="e.g. From friend, allowance">
-      </div>
-    </div>
-
-    <button class="btn btn-primary" onclick="saveEntry()">✓ Save Entry</button>
+    <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
   </div>
+
+  <div class="stitle">Starting Balances (on Salary Day)</div>
+  <div class="card">
+    <div style="background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);border-radius:var(--rs);padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--accent);">
+      💡 Set these right when your salary arrives. You can also use "+ Entry → Received Salary" to log it properly.
+    </div>
+    <div class="fg">
+      <label class="fl">🌐 Online Balance</label>
+      <input class="fi" type="number" id="set-online" placeholder="e.g. 15000" inputmode="numeric">
+    </div>
+    <div class="fg">
+      <label class="fl">👛 Wallet Cash</label>
+      <input class="fi" type="number" id="set-wallet" placeholder="e.g. 1100" inputmode="numeric">
+    </div>
+    <button class="btn btn-sec" onclick="saveStartBalances()">Set Starting Balances</button>
+  </div>
+
+  <div class="stitle">Data Management</div>
+  <div class="card">
+    <div class="srow">
+      <div><div class="srow-l">Export Data</div><div class="srow-sub">Copy as text</div></div>
+      <button class="btn btn-sec" style="width:auto;padding:8px 14px;font-size:13px;" onclick="exportData()">Export</button>
+    </div>
+    <div class="srow">
+      <div><div class="srow-l">Reset Month Logs</div><div class="srow-sub">Clear entries, keep settings</div></div>
+      <button class="btn btn-danger" style="width:auto;padding:8px 14px;font-size:13px;" onclick="resetMonth()">Reset</button>
+    </div>
+    <div class="srow">
+      <div><div class="srow-l">Archive & New Month</div><div class="srow-sub">Save history, start fresh</div></div>
+      <button class="btn btn-sec" style="width:auto;padding:8px 14px;font-size:13px;" onclick="newMonth()">Start</button>
+    </div>
+  </div>
+  <div style="text-align:center;padding:16px;font-size:12px;color:var(--muted)">Paisa Tracker v3.0 · Made with ❤️</div>
 </div>
 
-<!-- HISTORY -->
-<div id="pg-history" class="page">
-  <div class="form-group">
-    <select id="hmonth" onchange="renderHistory()"></select>
-  </div>
-  <div id="hlist"></div>
-</div>
-
-<!-- SETUP -->
-<div id="pg-setup" class="page">
-  <div class="card">
-    <div class="card-title">Correct Balances</div>
-    <div class="row2">
-      <div class="form-group"><label>Online Bank</label><input type="number" id="s-online" inputmode="decimal"></div>
-      <div class="form-group"><label>Wallet / Cash</label><input type="number" id="s-wallet" inputmode="decimal"></div>
-    </div>
-    <div class="row2">
-      <div class="form-group"><label>⛽ Fuel Left</label><input type="number" id="s-fuel" inputmode="decimal"></div>
-      <div class="form-group"><label>💚 Saving Left</label><input type="number" id="s-save" inputmode="decimal"></div>
-    </div>
-    <button class="btn btn-green" onclick="doSetup()">Update Balances</button>
-  </div>
-  <div class="card">
-    <div class="card-title">Monthly Budget Targets</div>
-    <div class="row2">
-      <div class="form-group"><label>Fuel Target</label><input type="number" id="s-fuelt" inputmode="decimal"></div>
-      <div class="form-group"><label>Saving Target</label><input type="number" id="s-savet" inputmode="decimal"></div>
-    </div>
-    <button class="btn btn-primary" onclick="doTargets()">Save Targets</button>
-  </div>
-  <div class="card">
-    <div class="card-title">Data</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <button class="btn-sm" onclick="doExport()">📤 Export JSON</button>
-      <button class="btn-sm" onclick="doImport()">📥 Import JSON</button>
-      <button class="btn-sm" style="color:var(--danger);border-color:var(--danger);" onclick="doReset()">🗑 Reset Month</button>
-    </div>
-    <input type="file" id="imp-file" accept=".json" style="display:none" onchange="importFile(event)">
-  </div>
-  <p style="text-align:center;color:var(--muted);font-size:11px;margin-top:16px;">Paisa Tracker v2.0 · Data saved on your phone</p>
-</div>
-
-<div class="toast" id="toast"></div>
+<div id="toast"></div>
 
 <script>
-// ─── Data ───
-const S = {
-  g: k => { try { return JSON.parse(localStorage.getItem(k)); } catch(e) { return null; } },
-  s: (k,v) => localStorage.setItem(k, JSON.stringify(v))
-};
+// ═══════════════════════════════════════════════════════
+// STORAGE
+// ═══════════════════════════════════════════════════════
+const MK=()=>{const d=new Date();return`pt_${d.getFullYear()}_${d.getMonth()}`;};
+function ld(k,df){try{const v=localStorage.getItem(k);return v?JSON.parse(v):df;}catch{return df;}}
+function sv(k,v){localStorage.setItem(k,JSON.stringify(v));}
 
-function gs() {
-  return S.g('pstate') || { online:0, wallet:0, fuel:0, save:0, fuelT:15000, saveT:5000, salary:0 };
-}
-function ss(s) { S.s('pstate', s); }
-function gl() { return S.g('plogs') || []; }
-function al(e) { const l=gl(); l.unshift(e); S.s('plogs',l); }
+// Settings: salary, fuel budget, saving goal (all can be adjusted by transfers)
+const getS=()=>ld('pt_settings',{salary:0,fuel:0,saving:0});
+// Physical balances: online + wallet
+const getB=()=>ld('pt_balances',{online:0,wallet:0});
+// Free/extra cash balance (separate pool)
+const getFC=()=>ld('pt_freecash',{amount:0});
+// All entries for current month
+const getE=()=>ld(MK()+'_e',[]);
+const saveE=e=>sv(MK()+'_e',e);
+// Salary state: persists across months until new salary logged
+const getSalaryState=()=>ld('pt_salary_state',{amount:0,date:null,month:null});
+const saveSalaryState=state=>sv('pt_salary_state',state);
+// Current month's LIVE budgets (start from settings, modified by transfers)
+const getLiveBudgets=()=>ld(MK()+'_budgets',null); // null = not yet set for this month
+const saveLiveBudgets=b=>sv(MK()+'_budgets',b);
 
-// ─── Helpers ───
-const today = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
-const todayInput = () => today();
-const fmtD = d => new Date(d+'T00:00:00').toLocaleDateString('en-PK',{day:'numeric',month:'short',year:'numeric'});
-const fmtM = m => { const [y,mo]=m.split('-'); return new Date(y,mo-1).toLocaleDateString('en-PK',{month:'long',year:'numeric'}); };
-const fA = n => 'Rs ' + Math.round(n).toLocaleString();
-const uid = () => Math.random().toString(36).substr(2,9);
-
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-const catInfo = {
-  petrol: { label:'⛽ Petrol/Fuel', cls:'bdg-fuel', col:'c-accent' },
-  saving: { label:'💚 Saving',      cls:'bdg-save', col:'c-green' },
-  cashout:{ label:'💳 Cash Out',    cls:'bdg-cash', col:'c-purple' },
-  salary: { label:'💸 Salary',      cls:'bdg-sal',  col:'c-green' },
-  walletin:{label:'👛 Wallet In',   cls:'bdg-sal',  col:'c-green' },
-  onlinein:{label:'🌐 Online In',   cls:'bdg-sal',  col:'c-purple' }
-};
-
-// ─── Nav ───
-function getEntryDate() {
-  return document.getElementById('edate').value || today();
+// ═══════════════════════════════════════════════════════
+// BUDGET COMPUTATION
+// ═══════════════════════════════════════════════════════
+function ensureLiveBudgets(){
+  let lb=getLiveBudgets();
+  if(!lb){
+    const s=getS();
+    lb={fuel:s.fuel,saving:s.saving};
+    saveLiveBudgets(lb);
+  }
+  return lb;
 }
 
-function nav(name) {
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('pg-'+name).classList.add('active');
-  const i = {dashboard:0,entry:1,history:2,setup:3}[name];
-  document.querySelectorAll('.tab')[i].classList.add('active');
-  if(name==='entry') document.getElementById('edate').value = today();
-  if(name==='dashboard') renderDash();
-  if(name==='history') { populateMonths(); renderHistory(); }
-  if(name==='setup') loadSetup();
-}
-
-// ─── Dashboard ───
-function renderDash() {
-  const s = gs();
-  const total = s.online + s.wallet;
-  const fuelUsed = s.fuelT - s.fuel;
-  const saveUsed = s.saveT - s.save;
-  const fuelPct = s.fuelT>0 ? Math.min(100,(fuelUsed/s.fuelT)*100) : 0;
-  const savePct = s.saveT>0 ? Math.min(100,(saveUsed/s.saveT)*100) : 0;
-
-  let alerts = '';
-  if(s.fuel < s.fuelT*0.2 && s.fuelT>0)
-    alerts += `<div class="alert alert-warn">⚠️ Fuel budget below 20% — only ${fA(s.fuel)} left!</div>`;
-  if(s.save < s.saveT*0.2 && s.saveT>0)
-    alerts += `<div class="alert alert-warn">⚠️ Saving budget low — only ${fA(s.save)} left!</div>`;
-
-  const todayLogs = gl().filter(l=>l.date===today());
-  let todayHtml = todayLogs.length === 0
-    ? '<div class="empty" style="padding:16px 0;"><div class="empty-icon">📝</div>No entries today yet.</div>'
-    : todayLogs.map(l => {
-        const isIn = l.cat==='salary'||l.cat==='walletin'||l.cat==='onlinein';
-        const ci = catInfo[l.cat]||{label:l.cat,cls:'bdg-cash',col:'c-text'};
-        return `<div class="exp-row">
-          <div style="flex:1">
-            <div class="exp-cat ${ci.col}">${ci.label}</div>
-            ${l.note?`<div class="exp-note">${l.note}</div>`:''}
-            ${l.paidOnline?'<div class="exp-note" style="color:var(--accent);">Paid online</div>':''}
-            ${l.paidWallet?'<div class="exp-note" style="color:var(--warn);">Paid from wallet</div>':''}
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <span class="exp-amt ${isIn?'c-green':'c-danger'}">${isIn?'+':'-'}${fA(l.amount)}</span>
-            <button class="del-btn" onclick="delEntry('${l.id}')">×</button>
-          </div>
-        </div>`;
-      }).join('');
-
-  document.getElementById('dash').innerHTML = `
-    ${alerts}
-    <div class="card">
-      <div class="card-title">💰 My Money</div>
-      <div class="stat-grid">
-        <div class="stat"><div class="stat-label">🌐 Online Bank</div><div class="stat-val c-purple">${fA(s.online)}</div></div>
-        <div class="stat"><div class="stat-label">👛 Wallet / Cash</div><div class="stat-val c-warn">${fA(s.wallet)}</div></div>
-      </div>
-      <div class="center" style="padding:6px 0 2px;">
-        <div style="font-size:12px;color:var(--muted);">Total Available</div>
-        <div class="big-num c-text">${fA(total)}</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">📊 Budget This Month</div>
-      <div class="stat-grid">
-        <div class="stat"><div class="stat-label">⛽ Fuel Remaining</div><div class="stat-val c-accent">${fA(s.fuel)}</div></div>
-        <div class="stat"><div class="stat-label">💚 Saving Remaining</div><div class="stat-val c-green">${fA(s.save)}</div></div>
-      </div>
-      <div class="prog-wrap">
-        <div class="prog-label"><span>⛽ Spent: ${fA(fuelUsed)}</span><span>${Math.round(fuelPct)}% of ${fA(s.fuelT)}</span></div>
-        <div class="prog-bar"><div class="prog-fill pf-fuel" style="width:${fuelPct}%"></div></div>
-      </div>
-      <div class="prog-wrap">
-        <div class="prog-label"><span>💚 Spent: ${fA(saveUsed)}</span><span>${Math.round(savePct)}% of ${fA(s.saveT)}</span></div>
-        <div class="prog-bar"><div class="prog-fill pf-save" style="width:${savePct}%"></div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">📅 Today — ${fmtD(today())}</div>
-      ${todayHtml}
-      <button class="btn btn-primary" style="margin-top:12px;" onclick="nav('entry')">+ Add Entry</button>
-    </div>`;
-}
-
-// ─── Entry ───
-function etypeChange() {
-  const t = document.getElementById('etype').value;
-  ['expense','cashout','salary','walletin','onlinein'].forEach(k => {
-    document.getElementById('f-'+k).style.display = t===k?'':'none';
+function calcAll(entries){
+  let fuelSpent=0,savingSpent=0,freeSpent=0,freeIn=0,cashoutTotal=0;
+  entries.forEach(e=>{
+    switch(e.type){
+      case'expense-fuel': fuelSpent+=e.amount||0; break;
+      case'expense-saving': savingSpent+=e.amount||0; break;
+      case'expense-free': freeSpent+=e.amount||0; break;
+      case'cashout': cashoutTotal+=e.amount||0; break;
+      case'free-deposit': freeIn+=e.amount||0; break;
+      // transfers affect live budgets, handled separately
+    }
   });
+  return{fuelSpent,savingSpent,freeSpent,freeIn,cashoutTotal};
 }
 
-function saveEntry() {
-  const t = document.getElementById('etype').value;
-  const s = gs();
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tn-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  document.getElementById('tn-'+name).classList.add('active');
+  if(name==='dashboard')renderDashboard();
+  if(name==='entry'){renderEntryLog();initEntryForm();}
+  if(name==='history')renderHistory();
+  if(name==='setup')loadSetup();
+}
 
-  if(t==='expense') {
-    const cat = document.getElementById('ecat').value;
-    const amt = parseFloat(document.getElementById('eamt').value);
-    const note = document.getElementById('enote').value.trim();
-    const po = document.getElementById('c-online').checked;
-    const pw = document.getElementById('c-wallet').checked;
-    if(!amt||amt<=0){toast('⚠️ Enter a valid amount');return;}
-    if(cat==='petrol') s.fuel = Math.max(0,s.fuel-amt);
-    else s.save = Math.max(0,s.save-amt);
-    if(po) s.online = Math.max(0,s.online-amt);
-    if(pw) s.wallet = Math.max(0,s.wallet-amt);
-    ss(s);
-    al({id:uid(),date:getEntryDate(),cat,amount:amt,note,paidOnline:po,paidWallet:pw});
-    toast('✓ Expense saved!');
-    document.getElementById('eamt').value='';
-    document.getElementById('enote').value='';
-    document.getElementById('c-online').checked=false;
-    document.getElementById('c-wallet').checked=false;
+// ═══════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════
+function renderDashboard(){
+  const b=getB(),entries=getE(),fc=getFC();
+  const lb=ensureLiveBudgets();
+  const{fuelSpent,savingSpent,freeSpent,freeIn}=calcAll(entries);
+  const ss=getSalaryState();
 
-  } else if(t==='cashout') {
-    const amt = parseFloat(document.getElementById('coamt').value);
-    if(!amt||amt<=0){toast('⚠️ Enter amount');return;}
-    if(amt>s.online){toast('❌ Not enough in online bank!');return;}
-    s.online -= amt; s.wallet += amt;
-    ss(s);
-    al({id:uid(),date:getEntryDate(),cat:'cashout',amount:amt,note:'Cashed out from online bank'});
-    toast('✓ Cash out recorded!');
-    document.getElementById('coamt').value='';
+  const total=b.online+b.wallet;
+  const fuelLeft=Math.max(0,lb.fuel-fuelSpent);
+  const saveLeft=Math.max(0,lb.saving-savingSpent);
+  const freeBal=fc.amount; // current free cash balance (managed manually)
+  const fuelPct=lb.fuel>0?Math.min(100,Math.round(fuelSpent/lb.fuel*100)):0;
+  const savePct=lb.saving>0?Math.min(100,Math.round(savingSpent/lb.saving*100)):0;
+  const freePct=freeBal+freeSpent>0?Math.min(100,Math.round(freeSpent/(freeBal+freeSpent)*100)):0;
 
-  } else if(t==='salary') {
-    const amt = parseFloat(document.getElementById('salamt').value);
-    const dest = document.getElementById('saldest').value;
-    const fuel = parseFloat(document.getElementById('salfuel').value)||0;
-    const save = parseFloat(document.getElementById('salsave').value)||0;
-    if(!amt||amt<=0){toast('⚠️ Enter salary amount');return;}
-    if(dest==='online') s.online+=amt; else s.wallet+=amt;
-    if(fuel>0){s.fuel=fuel;s.fuelT=fuel;}
-    if(save>0){s.save=save;s.saveT=save;}
-    s.salary=amt;
-    ss(s);
-    al({id:uid(),date:getEntryDate(),cat:'salary',amount:amt,note:`To ${dest} | Fuel budget: ${fA(fuel)} | Saving: ${fA(save)}`});
-    toast('🎉 Salary recorded!');
-    ['salamt','salfuel','salsave'].forEach(i=>document.getElementById(i).value='');
+  // Header date
+  const now=new Date();
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const mons=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const mshort=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('hdr-date').textContent=`${days[now.getDay()]}, ${now.getDate()} ${mons[now.getMonth()]} ${now.getFullYear()}`;
+  document.getElementById('month-label').textContent=`${mshort[now.getMonth()]} ${now.getFullYear()}`;
+  document.getElementById('today-label').textContent=`${now.getDate()} ${mshort[now.getMonth()]} ${now.getFullYear()}`;
 
-  } else if(t==='walletin') {    const amt = parseFloat(document.getElementById('wiamt').value);
-    const note = document.getElementById('winote').value.trim();
-    if(!amt||amt<=0){toast('⚠️ Enter amount');return;}
-    s.wallet+=amt; ss(s);
-    al({id:uid(),date:getEntryDate(),cat:'walletin',amount:amt,note});
-    toast('✓ Wallet updated!');
-    document.getElementById('wiamt').value='';
-    document.getElementById('winote').value='';
+  // Physical money
+  setEl('d-online',`Rs ${fmt(b.online)}`);
+  setEl('d-wallet',`Rs ${fmt(b.wallet)}`);
+  setEl('d-total',`Rs ${fmt(total)}`);
 
-  } else if(t==='onlinein') {
-    const amt = parseFloat(document.getElementById('oiamt').value);
-    const note = document.getElementById('oinote').value.trim();
-    if(!amt||amt<=0){toast('⚠️ Enter amount');return;}
-    s.online+=amt; ss(s);
-    al({id:uid(),date:getEntryDate(),cat:'onlinein',amount:amt,note});
-    toast('✓ Online balance updated!');
-    document.getElementById('oiamt').value='';
-    document.getElementById('oinote').value='';
+  // Fuel card
+  const fb=document.getElementById('fuel-bar');
+  fb.style.width=fuelPct+'%';
+  fb.style.background=fuelPct>=90?'var(--red)':fuelPct>=70?'var(--amber)':'var(--amber)';
+  setEl('fuel-pct-badge',fuelPct+'%');
+  setEl('fuel-prog-l',`Spent: Rs ${fmt(fuelSpent)}`);
+  setEl('fuel-prog-r',`${fuelPct}% of Rs ${fmt(lb.fuel)}`);
+  setEl('bn-f-b',`Rs ${fmt(lb.fuel)}`);
+  setEl('bn-f-s',`Rs ${fmt(fuelSpent)}`);
+  setEl('bn-f-l',`Rs ${fmt(fuelLeft)}`);
+
+  // Saving card
+  const sb=document.getElementById('save-bar');
+  sb.style.width=savePct+'%';
+  sb.style.background=savePct>=90?'var(--red)':'var(--green)';
+  setEl('save-pct-badge',savePct+'%');
+  setEl('save-prog-l',`Spent: Rs ${fmt(savingSpent)}`);
+  setEl('save-prog-r',`${savePct}% of Rs ${fmt(lb.saving)}`);
+  setEl('bn-s-b',`Rs ${fmt(lb.saving)}`);
+  setEl('bn-s-s',`Rs ${fmt(savingSpent)}`);
+  setEl('bn-s-l',`Rs ${fmt(saveLeft)}`);
+
+  // Free cash card
+  const totalFree=freeBal+freeSpent; // total free cash ever received this context
+  document.getElementById('free-bar').style.width=freePct+'%';
+  setEl('free-pct-badge',`Rs ${fmt(freeBal)} left`);
+  setEl('free-prog-l',`Spent: Rs ${fmt(freeSpent)}`);
+  setEl('free-prog-r',`Balance: Rs ${fmt(freeBal)}`);
+  setEl('bn-p-b',`Rs ${fmt(freeBal+freeSpent)}`);
+  setEl('bn-p-s',`Rs ${fmt(freeSpent)}`);
+  setEl('bn-p-l',`Rs ${fmt(freeBal)}`);
+
+  // Alerts
+  const az=document.getElementById('alert-zone');
+  const alerts=[];
+  if(getS().salary===0) alerts.push({cls:'alert-warn',msg:'⚙️ Go to Setup to configure your salary & budgets!'});
+  if(fuelPct>=90) alerts.push({cls:'alert-warn',msg:`⛽ Fuel budget almost gone! Only Rs ${fmt(fuelLeft)} left.`});
+  if(savePct>=90) alerts.push({cls:'alert-warn',msg:`💚 Saving budget being eaten! Only Rs ${fmt(saveLeft)} left.`});
+  if(freeBal<0) alerts.push({cls:'alert-pink',msg:`🎉 Free cash is negative! You overspent by Rs ${fmt(Math.abs(freeBal))}.`});
+  if(alerts.length===0 && fuelPct<50 && savePct<50) alerts.push({cls:'alert-ok',msg:'✓ Budgets looking healthy this month!'});
+  az.innerHTML=alerts.map(a=>`<div class="alert ${a.cls}">${a.msg}</div>`).join('');
+
+  // Today's entries
+  const todayStr=new Date().toISOString().split('T')[0];
+  const todayEntries=entries.filter(e=>e.date===todayStr);
+  const todayEl=document.getElementById('today-log');
+  todayEl.innerHTML=todayEntries.length
+    ?todayEntries.map(entryHTML).join('')
+    :'<div class="empty" style="padding:16px">📝 No entries today yet.</div>';
+
+  // Recent 5
+  const recent=[...entries].reverse().slice(0,5);
+  document.getElementById('recent-log').innerHTML=recent.length
+    ?recent.map(entryHTML).join('')
+    :'<div class="empty">No entries yet. Tap "+ Entry" to start!</div>';
+}
+
+// ═══════════════════════════════════════════════════════
+// ENTRY HTML
+// ═══════════════════════════════════════════════════════
+function entryHTML(e){
+  let tags='',amtHtml='',noteText=e.note||typeLabel(e.type);
+  const colMap={
+    'expense-fuel':'var(--red)','expense-saving':'var(--red)','expense-free':'var(--red)',
+    'cashout':'var(--accent)','salary':'var(--green)','cash-in-wallet':'var(--green)',
+    'cash-in-online':'var(--green)','free-deposit':'var(--pink)','free-withdraw':'var(--red)',
+    'transfer':'var(--purple)'
+  };
+  const prefixMap={
+    'expense-fuel':'-','expense-saving':'-','expense-free':'-',
+    'cashout':'','salary':'+','cash-in-wallet':'+','cash-in-online':'+',
+    'free-deposit':'+','free-withdraw':'-','transfer':'⇄'
+  };
+  const tagMap={
+    'expense-fuel':'<span class="tag tf">⛽ Fuel</span>',
+    'expense-saving':'<span class="tag ts">💚 Saving</span>',
+    'expense-free':'<span class="tag tp">🎉 Free</span>',
+    'cashout':'<span class="tag tc">🏧 Cash Out</span>',
+    'salary':'<span class="tag ts">🎊 Salary</span>',
+    'cash-in-wallet':'<span class="tag tc">👛 Cash In</span>',
+    'cash-in-online':'<span class="tag tc">🌐 Money In</span>',
+    'free-deposit':'<span class="tag tp">💰 Free In</span>',
+    'free-withdraw':'<span class="tag tp">💸 Free Out</span>',
+    'transfer':'<span class="tag tpu">🔄 Transfer</span>'
+  };
+  tags=tagMap[e.type]||'';
+  if(e.type==='transfer' && e.from && e.to){
+    tags+=` <span class="tag tpu" style="font-size:10px">${budgetLabel(e.from)}→${budgetLabel(e.to)}</span>`;
+  }
+  const srcTag=e.source==='online'?'<span class="tag tc" style="font-size:10px">Online</span>'
+    :e.source==='wallet'?'<span class="tag tpu" style="font-size:10px">Wallet</span>':'';
+  if(srcTag) tags+=' '+srcTag;
+  const amt=e.amount||0;
+  const col=colMap[e.type]||'var(--muted2)';
+  const pre=prefixMap[e.type]||'';
+  amtHtml=`<span class="li-amt" style="color:${col}">${pre}${fmt(amt)}</span>`;
+  return`<div class="log-item">
+    <div class="li-left">
+      <div class="li-date">${fmtDate(e.date)}</div>
+      <div class="li-note">${noteText}</div>
+      <div class="li-tags">${tags}</div>
+    </div>
+    <div class="li-right">${amtHtml}<button class="li-del" onclick="deleteEntry('${e.id}')">✕</button></div>
+  </div>`;
+}
+function typeLabel(t){
+  const m={'expense-fuel':'Fuel expense','expense-saving':'Saving expense','expense-free':'Free cash expense',
+  'cashout':'Cash out','salary':'Salary received','cash-in-wallet':'Cash received','cash-in-online':'Online deposit',
+  'free-deposit':'Free cash in','free-withdraw':'Free cash out','transfer':'Budget transfer'};
+  return m[t]||t;
+}
+function budgetLabel(b){return b==='fuel'?'⛽Fuel':b==='saving'?'💚Save':'🎉Free';}
+
+// ═══════════════════════════════════════════════════════
+// ENTRY TYPE SELECTION & DYNAMIC FORM
+// ═══════════════════════════════════════════════════════
+let currentType='expense-fuel';
+
+function selType(btn){
+  document.querySelectorAll('.type-btn').forEach(b=>{
+    b.classList.remove('sel','fuel-c','save-c','free-c','xfer-c');
+  });
+  currentType=btn.dataset.type;
+  const colorMap={'expense-fuel':'fuel-c','expense-saving':'save-c','expense-free':'free-c','transfer':'xfer-c'};
+  btn.classList.add('sel',colorMap[currentType]||'');
+  buildForm(currentType);
+}
+
+function initEntryForm(){
+  // default selection
+  const firstBtn=document.querySelector('.type-btn[data-type="expense-fuel"]');
+  if(firstBtn && currentType==='expense-fuel'){
+    document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('sel','fuel-c','save-c','free-c','xfer-c'));
+    firstBtn.classList.add('sel','fuel-c');
+  }
+  buildForm(currentType);
+  document.getElementById('e-date').value=todayStr();
+}
+
+function buildForm(type){
+  const f=document.getElementById('entry-form');
+  let html='';
+
+  if(['expense-fuel','expense-saving','expense-free'].includes(type)){
+    const budgetName=type==='expense-fuel'?'Fuel':type==='expense-saving'?'Saving':'Free Cash';
+    const color=type==='expense-fuel'?'var(--amber)':type==='expense-saving'?'var(--green)':'var(--pink)';
+    html+=`<div class="fg"><label class="fl">Amount spent from <span style="color:${color}">${budgetName}</span> budget (Rs)</label>
+      <input class="fi" type="number" id="ef-amount" placeholder="e.g. 3230" inputmode="numeric"></div>
+    <div class="fg"><label class="fl">Paid from (physical)</label>
+      <select class="fi" id="ef-source" onchange="toggleBothPay()">
+        <option value="online">🌐 Online Bank</option>
+        <option value="wallet">👛 Wallet Cash</option>
+        <option value="both">Both</option>
+        <option value="none">Not tracked (no balance change)</option>
+      </select></div>
+    <div id="ef-both" style="display:none">
+      <div class="fr">
+        <div class="fg"><label class="fl">From Online</label><input class="fi" type="number" id="ef-o-amt" placeholder="0" inputmode="numeric"></div>
+        <div class="fg"><label class="fl">From Wallet</label><input class="fi" type="number" id="ef-w-amt" placeholder="0" inputmode="numeric"></div>
+      </div></div>
+    <div class="fg"><label class="fl">Note (what was this for?)</label>
+      <input class="fi" type="text" id="ef-note" placeholder="e.g. Petrol fill, KFC, groceries..."></div>`;
+  }
+  else if(type==='cashout'){
+    html+=`<div style="background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);border-radius:var(--rs);padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--accent);">
+      🏧 Moves money from Online Bank → Wallet. Does <b>not</b> affect any budget.</div>
+    <div class="fg"><label class="fl">Amount cashed out (Rs)</label>
+      <input class="fi" type="number" id="ef-amount" placeholder="e.g. 5000" inputmode="numeric"></div>
+    <div class="fg"><label class="fl">Note</label>
+      <input class="fi" type="text" id="ef-note" placeholder="e.g. withdrew for petrol"></div>`;
+  }
+  else if(type==='salary'){
+    html+=`<div style="background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);border-radius:var(--rs);padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--green);">
+      🎊 This resets the salary tracking for the new cycle. Previous salary data moves to history.</div>
+    <div class="fg"><label class="fl">Salary Amount (Rs)</label>
+      <input class="fi" type="number" id="ef-amount" placeholder="e.g. 20000" inputmode="numeric"></div>
+    <div class="fg"><label class="fl">Credited to</label>
+      <select class="fi" id="ef-source">
+        <option value="online">🌐 Online Bank</option>
+        <option value="wallet">👛 Wallet Cash</option>
+        <option value="both">Split between both</option>
+        <option value="none">Don't update balances</option>
+      </select></div>
+    <div id="ef-both" style="display:none">
+      <div class="fr">
+        <div class="fg"><label class="fl">To Online</label><input class="fi" type="number" id="ef-o-amt" placeholder="0" inputmode="numeric"></div>
+        <div class="fg"><label class="fl">To Wallet</label><input class="fi" type="number" id="ef-w-amt" placeholder="0" inputmode="numeric"></div>
+      </div></div>
+    <div class="fg"><label class="fl">Note</label>
+      <input class="fi" type="text" id="ef-note" placeholder="e.g. June salary"></div>`;
+    // Add onchange for salary source too
+    setTimeout(()=>{const el=document.getElementById('ef-source');if(el)el.addEventListener('change',toggleBothPay);},50);
+  }
+  else if(type==='cash-in-wallet'){
+    html+=`<div class="fg"><label class="fl">Amount received into Wallet (Rs)</label>
+      <input class="fi" type="number" id="ef-amount" placeholder="e.g. 2000" inputmode="numeric"></div>
+    <div class="fg"><label class="fl">Note</label>
+      <input class="fi" type="text" id="ef-note" placeholder="e.g. borrowed money, gift..."></div>`;
+  }
+  else if(type==='cash-in-online'){
+    html+=`<div class="fg"><label class="fl">Amount received into Online Bank (Rs)</label>
+      <input class="fi" type="number" id="ef-amount" placeholder="e.g. 5000" inputmode="numeric"></div>
+    <div class="fg"><label class="fl">Note</label>
+      <input class="fi" type="text" id="ef-note" placeholder="e.g. transfer, payment received..."></div>`;
+  }
+  else if(type==='transfer'){
+    html+=`<div style="background:rgba(129,140,248,.08);border:1px solid rgba(129,140,248,.2);border-radius:var(--rs);padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--purple);">
+      🔄 Moves planned budget from one category to another. Updates the budget limits — does <b>not</b> affect your wallet or online balance.</div>
+    <div class="fr">
+      <div class="fg"><label class="fl">From Budget</label>
+        <select class="fi" id="ef-from">
+          <option value="fuel">⛽ Fuel</option>
+          <option value="saving">💚 Saving</option>
+          <option value="free">🎉 Free Cash</option>
+        </select></div>
+      <div class="fg"><label class="fl">To Budget</label>
+        <select class="fi" id="ef-to">
+          <option value="saving">💚 Saving</option>
+          <option value="fuel">⛽ Fuel</option>
+          <option value="free">🎉 Free Cash</option>
+        </select></div>
+    </div>
+    <div class="xfer-arrow">↓</div>
+    <div class="fg"><label class="fl">Amount to Transfer (Rs)</label>
+      <input class="fi" type="number" id="ef-amount" placeholder="e.g. 1000" inputmode="numeric"></div>
+    <div class="fg"><label class="fl">Note (optional)</label>
+      <input class="fi" type="text" id="ef-note" placeholder="e.g. moving fuel surplus to saving"></div>`;
+  }
+  else if(type==='free-deposit'){
+    html+=`<div style="background:rgba(244,114,182,.08);border:1px solid rgba(244,114,182,.2);border-radius:var(--rs);padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--pink);">
+      💰 Add extra/bonus cash to your Free Cash pool. This is separate from your salary budgets.</div>
+    <div class="fg"><label class="fl">Amount (Rs)</label>
+      <input class="fi" type="number" id="ef-amount" placeholder="e.g. 2000" inputmode="numeric"></div>
+    <div class="fg"><label class="fl">Paid from (physical)</label>
+      <select class="fi" id="ef-source">
+        <option value="none">Already in balance (no change)</option>
+        <option value="online">🌐 From Online Bank</option>
+        <option value="wallet">👛 From Wallet</option>
+      </select></div>
+    <div class="fg"><label class="fl">Note</label>
+      <input class="fi" type="text" id="ef-note" placeholder="e.g. bonus, freelance, gift..."></div>`;
+  }
+  else if(type==='free-withdraw'){
+    html+=`<div style="background:rgba(244,114,182,.08);border:1px solid rgba(244,114,182,.2);border-radius:var(--rs);padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--pink);">
+      💸 Withdraw from your Free Cash pool back to wallet/online, or spend it directly.</div>
+    <div class="fg"><label class="fl">Amount (Rs)</label>
+      <input class="fi" type="number" id="ef-amount" placeholder="e.g. 1000" inputmode="numeric"></div>
+    <div class="fg"><label class="fl">Goes to (physical)</label>
+      <select class="fi" id="ef-source">
+        <option value="none">Spent directly (no balance change)</option>
+        <option value="online">🌐 To Online Bank</option>
+        <option value="wallet">👛 To Wallet</option>
+      </select></div>
+    <div class="fg"><label class="fl">Note</label>
+      <input class="fi" type="text" id="ef-note" placeholder="e.g. transferred out, used for..."></div>`;
   }
 
-  nav('dashboard');
+  f.innerHTML=html;
+
+  // re-attach both listener for expense forms
+  if(['expense-fuel','expense-saving','expense-free'].includes(type)){
+    const sel=document.getElementById('ef-source');
+    if(sel) sel.addEventListener('change',toggleBothPay);
+  }
 }
 
-// ─── History ───
-function populateMonths() {
-  const logs=gl(), sel=document.getElementById('hmonth');
-  const months=new Set(logs.map(l=>l.date.substring(0,7)));
-  months.add(today().substring(0,7));
-  const arr=[...months].sort().reverse();
-  const cur=sel.value;
-  sel.innerHTML=arr.map(m=>`<option value="${m}"${m===cur?'selected':''}>${fmtM(m)}</option>`).join('');
+function toggleBothPay(){
+  const sel=document.getElementById('ef-source');
+  const row=document.getElementById('ef-both');
+  if(sel && row) row.style.display=sel.value==='both'?'':'none';
 }
 
-function renderHistory() {
-  const m=document.getElementById('hmonth').value||today().substring(0,7);
-  const logs=gl().filter(l=>l.date.startsWith(m));
-  const el=document.getElementById('hlist');
-  if(!logs.length){el.innerHTML='<div class="empty"><div class="empty-icon">📭</div>No entries this month.</div>';return;}
+// ═══════════════════════════════════════════════════════
+// SAVE ENTRY
+// ═══════════════════════════════════════════════════════
+function saveEntry(){
+  const date=document.getElementById('e-date').value||todayStr();
+  const amount=parseFloat(document.getElementById('ef-amount')?.value)||0;
+  const note=(document.getElementById('ef-note')?.value||'').trim();
+  const source=document.getElementById('ef-source')?.value||'none';
+  const type=currentType;
 
-  let fp=0,sp=0,sal=0,co=0;
-  logs.forEach(l=>{
-    if(l.cat==='petrol') fp+=l.amount;
-    else if(l.cat==='saving') sp+=l.amount;
-    else if(l.cat==='salary') sal+=l.amount;
-    else if(l.cat==='cashout') co+=l.amount;
-  });
+  if(amount<=0 && type!=='transfer'){toast('⚠️ Enter an amount');return;}
 
-  let html=`<div class="card">
-    <div class="card-title">Month Summary</div>
-    <div class="sum-line"><span>💸 Salary</span><span class="c-green">${fA(sal)}</span></div>
-    <div class="sum-line"><span>⛽ Fuel spent</span><span class="c-danger">${fA(fp)}</span></div>
-    <div class="sum-line"><span>💚 Saving spent</span><span class="c-danger">${fA(sp)}</span></div>
-    <div class="sum-line"><span>💳 Cashed out</span><span class="c-purple">${fA(co)}</span></div>
-    <div class="sum-line bold"><span>Total Spent</span><span class="c-danger">${fA(fp+sp)}</span></div>
-    <div class="sum-line bold"><span>Net Saved</span><span class="${sal-(fp+sp)>=0?'c-green':'c-danger'}">${fA(sal-(fp+sp))}</span></div>
-  </div>`;
+  const entries=getE();
+  const b=getB();
+  const fc=getFC();
+  const lb=ensureLiveBudgets();
 
-  const byDate={};
-  logs.forEach(l=>{if(!byDate[l.date])byDate[l.date]=[];byDate[l.date].push(l);});
-  Object.keys(byDate).sort().reverse().forEach(date=>{
-    html+=`<div class="hist-date-header">${fmtD(date)}</div>`;
-    byDate[date].forEach(l=>{
-      const ci=catInfo[l.cat]||{label:l.cat,cls:'bdg-cash',col:'c-text'};
-      const isIn=l.cat==='salary'||l.cat==='walletin'||l.cat==='onlinein';
-      html+=`<div class="hist-item">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-          <div>
-            <span class="badge ${ci.cls}">${ci.label}</span>
-            ${l.note?`<div style="font-size:12px;color:var(--muted);margin-top:4px;">${l.note}</div>`:''}
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-            <span style="font-weight:700;" class="${isIn?'c-green':'c-danger'}">${isIn?'+':'-'}${fA(l.amount)}</span>
-            <button class="del-btn" onclick="delEntry('${l.id}')">×</button>
-          </div>
-        </div>
-      </div>`;
-    });
-  });
-  el.innerHTML=html;
+  if(['expense-fuel','expense-saving','expense-free'].includes(type)){
+    if(source==='online') b.online=Math.max(0,b.online-amount);
+    else if(source==='wallet') b.wallet=Math.max(0,b.wallet-amount);
+    else if(source==='both'){
+      const o=parseFloat(document.getElementById('ef-o-amt')?.value)||0;
+      const w=parseFloat(document.getElementById('ef-w-amt')?.value)||0;
+      b.online=Math.max(0,b.online-o);
+      b.wallet=Math.max(0,b.wallet-w);
+    }
+    if(type==='expense-free') fc.amount=fc.amount-amount;
+    sv('pt_balances',b); sv('pt_freecash',fc);
+    entries.push({id:uid(),type,amount,source,note,date});
+    toast('✓ Expense added');
+  }
+  else if(type==='cashout'){
+    if(amount<=0){toast('Enter amount');return;}
+    b.online=Math.max(0,b.online-amount);
+    b.wallet=b.wallet+amount;
+    sv('pt_balances',b);
+    entries.push({id:uid(),type,amount,note:note||'Cash out',date});
+    toast(`✓ Rs ${fmt(amount)} moved Online → Wallet`);
+  }
+  else if(type==='salary'){
+    if(amount<=0){toast('Enter salary amount');return;}
+    // Credit to physical balance
+    if(source==='online') b.online+=amount;
+    else if(source==='wallet') b.wallet+=amount;
+    else if(source==='both'){
+      const o=parseFloat(document.getElementById('ef-o-amt')?.value)||0;
+      const w=parseFloat(document.getElementById('ef-w-amt')?.value)||0;
+      b.online+=o; b.wallet+=w;
+    }
+    sv('pt_balances',b);
+    // Update salary state — this persists across months
+    saveSalaryState({amount,date,month:MK()});
+    // Reset live budgets for this month to match settings
+    const s=getS();
+    saveLiveBudgets({fuel:s.fuel,saving:s.saving});
+    entries.push({id:uid(),type,amount,source,note:note||'Salary received',date});
+    toast(`🎊 Salary Rs ${fmt(amount)} logged!`);
+  }
+  else if(type==='cash-in-wallet'){
+    if(amount<=0){toast('Enter amount');return;}
+    b.wallet+=amount;
+    sv('pt_balances',b);
+    entries.push({id:uid(),type,amount,note:note||'Cash received',date});
+    toast(`✓ Rs ${fmt(amount)} added to Wallet`);
+  }
+  else if(type==='cash-in-online'){
+    if(amount<=0){toast('Enter amount');return;}
+    b.online+=amount;
+    sv('pt_balances',b);
+    entries.push({id:uid(),type,amount,note:note||'Online deposit',date});
+    toast(`✓ Rs ${fmt(amount)} added to Online`);
+  }
+  else if(type==='transfer'){
+    const from=document.getElementById('ef-from')?.value;
+    const to=document.getElementById('ef-to')?.value;
+    if(!from||!to||from===to){toast('Select different From and To budgets');return;}
+    if(amount<=0){toast('Enter transfer amount');return;}
+    // Adjust live budgets
+    if(from==='fuel') lb.fuel=Math.max(0,lb.fuel-amount);
+    else if(from==='saving') lb.saving=Math.max(0,lb.saving-amount);
+    else if(from==='free'){fc.amount=Math.max(0,fc.amount-amount);sv('pt_freecash',fc);}
+    if(to==='fuel') lb.fuel+=amount;
+    else if(to==='saving') lb.saving+=amount;
+    else if(to==='free'){fc.amount+=amount;sv('pt_freecash',fc);}
+    saveLiveBudgets(lb);
+    entries.push({id:uid(),type,amount,from,to,note:note||`Transfer ${budgetLabel(from)}→${budgetLabel(to)}`,date});
+    toast(`✓ Rs ${fmt(amount)} transferred ${budgetLabel(from)} → ${budgetLabel(to)}`);
+  }
+  else if(type==='free-deposit'){
+    if(amount<=0){toast('Enter amount');return;}
+    fc.amount+=amount;
+    if(source==='online') b.online=Math.max(0,b.online-amount);
+    else if(source==='wallet') b.wallet=Math.max(0,b.wallet-amount);
+    sv('pt_balances',b); sv('pt_freecash',fc);
+    entries.push({id:uid(),type,amount,source,note:note||'Free cash deposit',date});
+    toast(`✓ Rs ${fmt(amount)} added to Free Cash`);
+  }
+  else if(type==='free-withdraw'){
+    if(amount<=0){toast('Enter amount');return;}
+    fc.amount=fc.amount-amount;
+    if(source==='online') b.online+=amount;
+    else if(source==='wallet') b.wallet+=amount;
+    sv('pt_balances',b); sv('pt_freecash',fc);
+    entries.push({id:uid(),type,amount,source,note:note||'Free cash withdrawn',date});
+    toast(`✓ Rs ${fmt(amount)} withdrawn from Free Cash`);
+  }
+
+  saveE(entries);
+  // Clear amount and note
+  const amtEl=document.getElementById('ef-amount');
+  const noteEl=document.getElementById('ef-note');
+  if(amtEl) amtEl.value='';
+  if(noteEl) noteEl.value='';
+  renderEntryLog();
 }
 
-function delEntry(id) {
-  if(!confirm('Delete this entry?\n\nNote: Balances will NOT auto-reverse. Fix manually in Setup if needed.')) return;
-  S.s('plogs', gl().filter(l=>l.id!==id));
+// ═══════════════════════════════════════════════════════
+// DELETE ENTRY (with balance reversal)
+// ═══════════════════════════════════════════════════════
+function deleteEntry(id){
+  if(!confirm('Delete this entry?'))return;
+  let entries=getE();
+  const e=entries.find(x=>x.id===id);
+  if(!e)return;
+  const b=getB(),fc=getFC(),lb=ensureLiveBudgets();
+
+  // Reverse balance effects
+  if(['expense-fuel','expense-saving','expense-free'].includes(e.type)){
+    if(e.source==='online') b.online+=e.amount;
+    else if(e.source==='wallet') b.wallet+=e.amount;
+    // Note: 'both' case is approximated by not reversing sub-amounts (complex edge case)
+    if(e.type==='expense-free') fc.amount+=e.amount;
+    sv('pt_balances',b); sv('pt_freecash',fc);
+  }
+  else if(e.type==='cashout'){b.online+=e.amount;b.wallet=Math.max(0,b.wallet-e.amount);sv('pt_balances',b);}
+  else if(e.type==='salary'){b.online=Math.max(0,b.online-(e.source==='online'?e.amount:0));b.wallet=Math.max(0,b.wallet-(e.source==='wallet'?e.amount:0));sv('pt_balances',b);}
+  else if(e.type==='cash-in-wallet'){b.wallet=Math.max(0,b.wallet-e.amount);sv('pt_balances',b);}
+  else if(e.type==='cash-in-online'){b.online=Math.max(0,b.online-e.amount);sv('pt_balances',b);}
+  else if(e.type==='transfer'){
+    if(e.from==='fuel') lb.fuel+=e.amount;
+    else if(e.from==='saving') lb.saving+=e.amount;
+    else if(e.from==='free'){fc.amount+=e.amount;sv('pt_freecash',fc);}
+    if(e.to==='fuel') lb.fuel=Math.max(0,lb.fuel-e.amount);
+    else if(e.to==='saving') lb.saving=Math.max(0,lb.saving-e.amount);
+    else if(e.to==='free'){fc.amount=Math.max(0,fc.amount-e.amount);sv('pt_freecash',fc);}
+    saveLiveBudgets(lb);
+  }
+  else if(e.type==='free-deposit'){
+    fc.amount=Math.max(0,fc.amount-e.amount);
+    if(e.source==='online') b.online+=e.amount;
+    else if(e.source==='wallet') b.wallet+=e.amount;
+    sv('pt_balances',b); sv('pt_freecash',fc);
+  }
+  else if(e.type==='free-withdraw'){
+    fc.amount+=e.amount;
+    if(e.source==='online') b.online=Math.max(0,b.online-e.amount);
+    else if(e.source==='wallet') b.wallet=Math.max(0,b.wallet-e.amount);
+    sv('pt_balances',b); sv('pt_freecash',fc);
+  }
+
+  entries=entries.filter(x=>x.id!==id);
+  saveE(entries);
   toast('Deleted');
-  renderDash();
-  if(document.getElementById('pg-history').classList.contains('active')) renderHistory();
+  renderEntryLog();
+  renderDashboard();
 }
 
-// ─── Setup ───
-function loadSetup() {
-  const s=gs();
-  document.getElementById('s-online').value=s.online;
-  document.getElementById('s-wallet').value=s.wallet;
-  document.getElementById('s-fuel').value=s.fuel;
-  document.getElementById('s-save').value=s.save;
-  document.getElementById('s-fuelt').value=s.fuelT;
-  document.getElementById('s-savet').value=s.saveT;
+// ═══════════════════════════════════════════════════════
+// RENDER ENTRY LOG
+// ═══════════════════════════════════════════════════════
+function renderEntryLog(){
+  const entries=getE();
+  document.getElementById('full-log').innerHTML=entries.length
+    ?[...entries].reverse().map(entryHTML).join('')
+    :'<div class="empty">No entries yet.</div>';
 }
-function doSetup() {
-  const s=gs();
-  s.online=parseFloat(document.getElementById('s-online').value)||0;
-  s.wallet=parseFloat(document.getElementById('s-wallet').value)||0;
-  s.fuel=parseFloat(document.getElementById('s-fuel').value)||0;
-  s.save=parseFloat(document.getElementById('s-save').value)||0;
-  ss(s); toast('✓ Balances updated!');
+
+// ═══════════════════════════════════════════════════════
+// HISTORY
+// ═══════════════════════════════════════════════════════
+function renderHistory(){
+  const mns=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const mshort=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // Collect all months with data
+  const monthKeys=Object.keys(localStorage)
+    .filter(k=>k.startsWith('pt_')&&k.endsWith('_e'))
+    .sort().reverse();
+
+  // Also include current month
+  const curKey=MK()+'_e';
+  const allKeys=[...new Set([curKey,...monthKeys])].sort().reverse();
+
+  const ss=getSalaryState();
+  const el=document.getElementById('history-list');
+
+  if(allKeys.length===0){el.innerHTML='<div class="empty">No history yet.</div>';return;}
+
+  let html='';
+  allKeys.forEach(key=>{
+    const parts=key.replace('pt_','').replace('_e','').split('_');
+    if(parts.length<2)return;
+    const yr=parseInt(parts[0]),mo=parseInt(parts[1]);
+    const entries=ld(key,[]);
+    if(entries.length===0&&key!==curKey)return; // skip empty months
+
+    const{fuelSpent,savingSpent,freeSpent,freeIn,cashoutTotal}=calcAll(entries);
+    const totalBudgetSpent=fuelSpent+savingSpent; // free cash excluded from salary calc
+
+    // Salary for this month: salary entry in this month's entries
+    const salEntry=entries.find(e=>e.type==='salary');
+    const monthSalary=salEntry?salEntry.amount:
+      (key===curKey && ss.amount>0?ss.amount:0); // use persisted state for current month
+
+    const netSaved=monthSalary-totalBudgetSpent;
+    const isCurrent=key===curKey;
+
+    const badgeColor=netSaved>=0?'var(--green)':'var(--red)';
+    const badgeText=netSaved>=0?`+Rs ${fmt(netSaved)}`:`-Rs ${fmt(Math.abs(netSaved))}`;
+
+    html+=`<div class="hist-card">
+      <div class="hist-header" onclick="toggleHist('hist-${yr}-${mo}')">
+        <div>
+          <div class="hist-title">${isCurrent?'<span style="color:var(--accent)">▶ </span>':''}${mns[mo]} ${yr}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">${entries.length} entries${isCurrent?' · Current month':''}</div>
+        </div>
+        <div class="hist-badge" style="background:${netSaved>=0?'rgba(52,211,153,.15)':'rgba(248,113,113,.15)'};color:${badgeColor}">${badgeText}</div>
+      </div>
+      <div class="hist-body" id="hist-${yr}-${mo}">
+        <div class="hrow"><span style="color:var(--muted)">🎊 Salary</span><span style="color:var(--green);font-weight:700">Rs ${fmt(monthSalary)}${!salEntry&&isCurrent&&ss.amount>0?' (from prev)':''}</span></div>
+        <div class="hrow"><span style="color:var(--amber)">⛽ Fuel spent</span><span style="color:var(--red)">Rs ${fmt(fuelSpent)}</span></div>
+        <div class="hrow"><span style="color:var(--green)">💚 Saving spent</span><span style="color:var(--red)">Rs ${fmt(savingSpent)}</span></div>
+        <div class="hrow"><span style="color:var(--accent)">🏧 Cashed out</span><span style="color:var(--accent)">Rs ${fmt(cashoutTotal)}</span></div>
+        <div class="hrow" style="border-top:2px solid var(--border);margin-top:4px;padding-top:8px;"><span style="font-weight:700">Total Spent (salary)</span><span style="color:var(--red);font-weight:700">Rs ${fmt(totalBudgetSpent)}</span></div>
+        <div class="hrow"><span style="font-weight:700">Net Saved</span><span style="color:${badgeColor};font-weight:700">${badgeText}</span></div>
+        ${freeSpent>0||freeIn>0?`<div class="hrow" style="border-top:1px dashed var(--border);margin-top:4px;padding-top:6px;font-style:italic;"><span style="color:var(--pink)">🎉 Free cash (not in salary calc)</span><span style="color:var(--pink)">In: ${fmt(freeIn)} / Spent: ${fmt(freeSpent)}</span></div>`:''}
+      </div>
+    </div>`;
+  });
+  el.innerHTML=html||'<div class="empty">No history yet.</div>';
 }
-function doTargets() {
-  const s=gs();
-  s.fuelT=parseFloat(document.getElementById('s-fuelt').value)||s.fuelT;
-  s.saveT=parseFloat(document.getElementById('s-savet').value)||s.saveT;
-  ss(s); toast('✓ Targets saved!');
+
+function toggleHist(id){
+  const el=document.getElementById(id);
+  if(el) el.classList.toggle('open');
 }
-function doReset() {
-  if(!confirm('Reset all balances to zero? History is kept.')) return;
-  const s=gs(); s.online=0;s.wallet=0;s.fuel=0;s.save=0;s.salary=0; ss(s);
-  loadSetup(); toast('✓ Reset done');
+
+// ═══════════════════════════════════════════════════════
+// SETUP
+// ═══════════════════════════════════════════════════════
+function loadSetup(){
+  const s=getS(),b=getB();
+  document.getElementById('set-salary').value=s.salary||'';
+  document.getElementById('set-fuel').value=s.fuel||'';
+  document.getElementById('set-saving').value=s.saving||'';
+  document.getElementById('set-online').value=b.online||'';
+  document.getElementById('set-wallet').value=b.wallet||'';
+  updateSetCheck();
 }
-function doExport() {
-  const d={state:gs(),logs:gl(),exported:new Date().toISOString()};
-  const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(b);
-  a.download='paisa-'+today()+'.json'; a.click(); toast('📤 Exported!');
+function updateSetCheck(){
+  const sal=parseFloat(document.getElementById('set-salary').value)||0;
+  const fuel=parseFloat(document.getElementById('set-fuel').value)||0;
+  const saving=parseFloat(document.getElementById('set-saving').value)||0;
+  const el=document.getElementById('set-check');
+  if(!sal){el.textContent='Enter values above.';el.style.color='var(--muted2)';return;}
+  const diff=sal-(fuel+saving);
+  if(diff===0){el.style.color='var(--green)';el.textContent='✓ Fuel + Saving = Salary. Perfect!';}
+  else if(diff>0){el.style.color='var(--amber)';el.textContent=`Rs ${fmt(diff)} unallocated from salary.`;}
+  else{el.style.color='var(--red)';el.textContent=`Over salary by Rs ${fmt(Math.abs(diff))}!`;}
 }
-function doImport() { document.getElementById('imp-file').click(); }
-function importFile(e) {
-  const f=e.target.files[0]; if(!f) return;
-  const r=new FileReader();
-  r.onload=ev=>{
-    try {
-      const d=JSON.parse(ev.target.result);
-      if(d.state) ss(d.state);
-      if(d.logs) S.s('plogs',d.logs);
-      toast('✓ Imported!'); loadSetup();
-    } catch(err) { toast('❌ Invalid file'); }
+['set-salary','set-fuel','set-saving'].forEach(id=>
+  document.getElementById(id).addEventListener('input',updateSetCheck));
+
+function saveSettings(){
+  const s={
+    salary:parseFloat(document.getElementById('set-salary').value)||0,
+    fuel:parseFloat(document.getElementById('set-fuel').value)||0,
+    saving:parseFloat(document.getElementById('set-saving').value)||0
   };
-  r.readAsText(f);
+  sv('pt_settings',s);
+  // Update live budgets if no entries yet this month
+  const entries=getE();
+  const hasBudgetEntries=entries.some(e=>['expense-fuel','expense-saving','transfer'].includes(e.type));
+  if(!hasBudgetEntries) saveLiveBudgets({fuel:s.fuel,saving:s.saving});
+  toast('✓ Settings saved');
+}
+function saveStartBalances(){
+  sv('pt_balances',{
+    online:parseFloat(document.getElementById('set-online').value)||0,
+    wallet:parseFloat(document.getElementById('set-wallet').value)||0
+  });
+  toast('✓ Starting balances saved');
+}
+function exportData(){
+  const s=getS(),b=getB(),fc=getFC(),entries=getE();
+  const{fuelSpent,savingSpent,freeSpent}=calcAll(entries);
+  let txt=`Paisa Tracker Export – ${new Date().toLocaleDateString()}\n`;
+  txt+=`Salary: Rs ${fmt(s.salary)} | Fuel: Rs ${fmt(s.fuel)} | Saving: Rs ${fmt(s.saving)}\n`;
+  txt+=`Online: Rs ${fmt(b.online)} | Wallet: Rs ${fmt(b.wallet)} | Free Cash: Rs ${fmt(fc.amount)}\n`;
+  txt+=`Fuel Spent: Rs ${fmt(fuelSpent)} | Saving Spent: Rs ${fmt(savingSpent)} | Free Spent: Rs ${fmt(freeSpent)}\n\n`;
+  entries.forEach(e=>{txt+=`[${e.date}] ${typeLabel(e.type)}|${e.note||''}|Rs ${fmt(e.amount||0)}\n`;});
+  navigator.clipboard.writeText(txt).then(()=>toast('✓ Copied to clipboard')).catch(()=>alert(txt));
+}
+function resetMonth(){
+  if(!confirm('Clear all logs for this month? Settings & balances are kept.'))return;
+  saveE([]);saveLiveBudgets(null);
+  toast('Month logs cleared');renderDashboard();
+}
+function newMonth(){
+  if(!confirm('This archives the current month and resets budgets for a new month. Continue?'))return;
+  // Archive is automatic via month key. Just reset live budgets.
+  saveLiveBudgets(null);
+  // Reset free cash? Up to user — we don't auto-reset free cash pool
+  toast('✓ New month started');renderDashboard();
 }
 
-// ─── Service Worker ───
-if('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(()=>{});
+// ═══════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════
+function fmt(n){return Math.round(n||0).toLocaleString();}
+function setEl(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5);}
+function todayStr(){return new Date().toISOString().split('T')[0];}
+function fmtDate(s){
+  if(!s)return'';
+  const d=new Date(s+'T00:00:00');
+  return d.toLocaleDateString('en-PK',{day:'numeric',month:'short',weekday:'short'});
+}
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
 }
 
-// ─── Init ───
-document.getElementById('hdate').textContent = new Date().toLocaleDateString('en-PK',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-document.getElementById('edate').value = today();
-renderDash();
+// ═══════════════════════════════════════════════════════
+// PWA
+// ═══════════════════════════════════════════════════════
+let dp=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();dp=e;
+  document.getElementById('inst').style.display='block';
+});
+function installApp(){
+  if(dp){dp.prompt();dp.userChoice.then(()=>{dp=null;document.getElementById('inst').style.display='none';});}
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+document.getElementById('e-date').value=todayStr();
+renderDashboard();
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
 </html>
