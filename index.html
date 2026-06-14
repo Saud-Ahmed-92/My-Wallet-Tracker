@@ -345,15 +345,21 @@ select.fi{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns=
   <div class="stitle">Data Management</div>
   <div class="card">
     <div class="srow">
-      <div><div class="srow-l">Export Data</div><div class="srow-sub">Copy as text</div></div>
+      <div><div class="srow-l">💾 Export Backup</div><div class="srow-sub">Download .json — all data &amp; history</div></div>
       <button class="btn btn-sec" style="width:auto;padding:8px 14px;font-size:13px;" onclick="exportData()">Export</button>
     </div>
+    <div class="srow">
+      <div><div class="srow-l">📂 Import Backup</div><div class="srow-sub">Restore from .json file</div></div>
+      <button class="btn btn-sec" style="width:auto;padding:8px 14px;font-size:13px;color:var(--green);border-color:rgba(52,211,153,.4);" onclick="document.getElementById('import-file').click()">Import</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+    <div id="import-status" style="display:none;border-radius:var(--rs);padding:10px 12px;margin-top:4px;font-size:13px;"></div>
     <div class="srow">
       <div><div class="srow-l">Reset Month Logs</div><div class="srow-sub">Clear entries, keep settings</div></div>
       <button class="btn btn-danger" style="width:auto;padding:8px 14px;font-size:13px;" onclick="resetMonth()">Reset</button>
     </div>
     <div class="srow">
-      <div><div class="srow-l">Archive & New Month</div><div class="srow-sub">Save history, start fresh</div></div>
+      <div><div class="srow-l">Archive &amp; New Month</div><div class="srow-sub">Save history, start fresh</div></div>
       <button class="btn btn-sec" style="width:auto;padding:8px 14px;font-size:13px;" onclick="newMonth()">Start</button>
     </div>
   </div>
@@ -1025,14 +1031,79 @@ function saveStartBalances(){
   toast('✓ Starting balances saved');
 }
 function exportData(){
-  const s=getS(),b=getB(),fc=getFC(),entries=getE();
-  const{fuelSpent,savingSpent,freeSpent}=calcAll(entries);
-  let txt=`Paisa Tracker Export – ${new Date().toLocaleDateString()}\n`;
-  txt+=`Salary: Rs ${fmt(s.salary)} | Fuel: Rs ${fmt(s.fuel)} | Saving: Rs ${fmt(s.saving)}\n`;
-  txt+=`Online: Rs ${fmt(b.online)} | Wallet: Rs ${fmt(b.wallet)} | Free Cash: Rs ${fmt(fc.amount)}\n`;
-  txt+=`Fuel Spent: Rs ${fmt(fuelSpent)} | Saving Spent: Rs ${fmt(savingSpent)} | Free Spent: Rs ${fmt(freeSpent)}\n\n`;
-  entries.forEach(e=>{txt+=`[${e.date}] ${typeLabel(e.type)}|${e.note||''}|Rs ${fmt(e.amount||0)}\n`;});
-  navigator.clipboard.writeText(txt).then(()=>toast('✓ Copied to clipboard')).catch(()=>alert(txt));
+  const allMonthKeys=Object.keys(localStorage).filter(k=>k.startsWith('pt_')&&k.endsWith('_e'));
+  const allBudgetKeys=Object.keys(localStorage).filter(k=>k.startsWith('pt_')&&k.endsWith('_budgets'));
+  const monthsData={};
+  allMonthKeys.forEach(k=>{monthsData[k]=ld(k,[]);});
+  const budgetsData={};
+  allBudgetKeys.forEach(k=>{budgetsData[k]=ld(k,null);});
+  const backup={
+    version:'pt_v3',
+    exported:new Date().toISOString(),
+    settings:getS(),
+    balances:getB(),
+    freecash:getFC(),
+    salaryState:getSalaryState(),
+    months:monthsData,
+    budgets:budgetsData
+  };
+  const json=JSON.stringify(backup,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`paisa-tracker-backup-${todayStr()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('✓ Backup downloaded!');
+}
+
+function importData(event){
+  const file=event.target.files[0];
+  if(!file){return;}
+  const statusEl=document.getElementById('import-status');
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const data=JSON.parse(e.target.result);
+      if(data.version!=='pt_v3'){
+        statusEl.style.display='block';
+        statusEl.style.background='rgba(248,113,113,.1)';
+        statusEl.style.border='1px solid rgba(248,113,113,.3)';
+        statusEl.style.color='var(--red)';
+        statusEl.textContent='❌ Invalid file! Only Paisa Tracker v3 backups can be imported.';
+        event.target.value='';return;
+      }
+      if(!confirm('This will REPLACE all your current data with the backup. Are you sure?')){
+        event.target.value='';return;
+      }
+      if(data.settings) sv('pt_settings',data.settings);
+      if(data.balances) sv('pt_balances',data.balances);
+      if(data.freecash) sv('pt_freecash',data.freecash);
+      if(data.salaryState) sv('pt_salary_state',data.salaryState);
+      if(data.months){Object.keys(data.months).forEach(k=>{sv(k,data.months[k]);});}
+      if(data.budgets){Object.keys(data.budgets).forEach(k=>{sv(k,data.budgets[k]);});}
+      const exportedDate=data.exported?new Date(data.exported).toLocaleDateString('en-PK',{day:'numeric',month:'short',year:'numeric'}):'unknown date';
+      const totalEntries=data.months?Object.values(data.months).reduce((a,m)=>a+(m.length||0),0):0;
+      statusEl.style.display='block';
+      statusEl.style.background='rgba(52,211,153,.08)';
+      statusEl.style.border='1px solid rgba(52,211,153,.2)';
+      statusEl.style.color='var(--green)';
+      statusEl.textContent=`✓ Restored! Backup from ${exportedDate} · ${totalEntries} entries loaded.`;
+      renderDashboard();loadSetup();
+      toast('✓ Data imported successfully!');
+    }catch(err){
+      statusEl.style.display='block';
+      statusEl.style.background='rgba(248,113,113,.1)';
+      statusEl.style.border='1px solid rgba(248,113,113,.3)';
+      statusEl.style.color='var(--red)';
+      statusEl.textContent='❌ Could not read file. Make sure it is a valid Paisa Tracker backup.';
+    }
+    event.target.value='';
+  };
+  reader.readAsText(file);
 }
 function resetMonth(){
   if(!confirm('Clear all logs for this month? Settings & balances are kept.'))return;
@@ -1053,7 +1124,7 @@ function newMonth(){
 function fmt(n){return Math.round(n||0).toLocaleString();}
 function setEl(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5);}
-function todayStr(){return new Date().toISOString().split('T')[0];}
+function todayStr(){const d=new Date();const yr=d.getFullYear();const mo=String(d.getMonth()+1).padStart(2,'0');const dy=String(d.getDate()).padStart(2,'0');return`${yr}-${mo}-${dy}`;}
 function fmtDate(s){
   if(!s)return'';
   const d=new Date(s+'T00:00:00');
