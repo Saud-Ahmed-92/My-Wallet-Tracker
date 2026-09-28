@@ -312,6 +312,9 @@ function getBudgetBalances(){return LS.get('p2_bbudgets',{});}
 function saveBudgetBalances(b){LS.set('p2_bbudgets',b);}
 function getSalaryDate(){return LS.get('p2_sal_date',null);}
 function saveSalaryDate(d){LS.set('p2_sal_date',d);}
+function getPlans(){return LS.get('p2_bplans',{});}
+function savePlans(p){LS.set('p2_bplans',p);}
+function todaySpentOnBudget(bid){const t=localDateStr();return getEntries().filter(e=>e.type==='spend'&&e.budget===bid&&e.date===t).reduce((a,e)=>a+e.amount,0);}
 
 /* helpers */
 function uid(){return '_'+Math.random().toString(36).slice(2,9);}
@@ -436,16 +439,74 @@ function renderDashboard(){
     const left=alloc-spent;
     const pct=alloc>0?Math.min(100,Math.round(spent/alloc*100)):0;
     const barColor=pct>=90?'var(--red)':b.color;
-    // daily estimate
+    // daily plan (per-budget, set in Setup)
     let dailyHTML='';
-    if(salDate){
-      const salDay=new Date(salDate+'T00:00:00');
+    const plan=getPlans()[b.id];
+    if(plan&&plan.on&&plan.date){
+      const DAY=86400000;
       const today=new Date();today.setHours(0,0,0,0);
-      const daysPassed=Math.max(1,Math.round((today-salDay)/86400000)+1);
-      const dailyRate=alloc>0?Math.round(alloc/30):0;
-      const expectedByNow=dailyRate*daysPassed;
-      const diff=expectedByNow-spent;
-      dailyHTML=`<div class="bcard-daily">Daily avg: Rs ${fmt(dailyRate)} · Expected by now: Rs ${fmt(expectedByNow)} · You're <span style="color:${diff>=0?'var(--green)':'var(--red)'};">${diff>=0?'Rs '+fmt(diff)+' under':'Rs '+fmt(Math.abs(diff))+' over'}</span></div>`;
+      const nd=new Date(plan.date+'T00:00:00');
+      const daysLeft=Math.round((nd-today)/DAY);
+      const tSpent=todaySpentOnBudget(b.id);
+      const M='color:var(--muted);font-size:10px;letter-spacing:.5px;text-transform:uppercase;';
+      const wrap=(inner)=>`<div class="bcard-daily">${inner}</div>`;
+      if(daysLeft<0){
+        dailyHTML=wrap(`🎯 Salary date (${fmtDate(plan.date)}) has passed. Update the plan in Setup.`);
+      } else if(daysLeft===0){
+        dailyHTML=wrap(`🎯 Salary day is today · Rs ${fmt(Math.max(0,left))} left in this budget.`);
+      } else {
+        const fixed=plan.daily>0;
+        const safe=Math.max(0,left)/daysLeft;
+        const limit=fixed?plan.daily:safe;
+        const needed=limit*daysLeft;
+        const diff=left-needed;
+        const lasts=limit>0?Math.floor(Math.max(0,left)/limit):0;
+        const tPct=limit>0?Math.min(100,Math.round(tSpent/limit*100)):(tSpent>0?100:0);
+        const tCol=tSpent>limit+0.5?'var(--red)':(tPct>=80?'var(--amber)':'var(--green)');
+        const tLeft=limit-tSpent;
+        // status pill
+        let pillTxt,pillCol;
+        if(left<=0){pillTxt='⚠ Budget empty';pillCol='var(--red)';}
+        else if(fixed&&diff<-0.5){pillTxt='⚠ Short Rs '+fmt(Math.abs(diff));pillCol='var(--red)';}
+        else if(fixed&&diff>0.5){pillTxt='✓ On track · Rs '+fmt(diff)+' spare';pillCol='var(--green)';}
+        else{pillTxt='✓ On track';pillCol='var(--green)';}
+        // smart tips
+        const tips=[];
+        if(fixed&&left>0&&diff<-0.5)tips.push(`Spend up to <b>Rs ${fmt(safe)}/day</b> from now to make it (plan is Rs ${fmt(plan.daily)}).`);
+        if(fixed&&diff>0.5)tips.push(`You could spend up to <b>Rs ${fmt(safe)}/day</b> and still make it.`);
+        const salDay=new Date(salDate+'T00:00:00');
+        const daysPassed=Math.max(1,Math.round((today-salDay)/DAY)+1);
+        if(spent>0&&left>0){
+          const pace=spent/daysPassed;
+          const daysLast=left/pace;
+          if(daysLast>=daysLeft){tips.push(`At your pace (Rs ${fmt(pace)}/day) you'll make it to salary ✓`);}
+          else{
+            const ro=new Date(today.getTime()+Math.floor(daysLast)*DAY);
+            const roS=ro.getFullYear()+'-'+String(ro.getMonth()+1).padStart(2,'0')+'-'+String(ro.getDate()).padStart(2,'0');
+            const gap=daysLeft-Math.floor(daysLast);
+            tips.push(`At your pace (Rs ${fmt(pace)}/day) it runs out around <b>${fmtDate(roS)}</b>, ${gap} day${gap===1?'':'s'} before salary.`);
+          }
+        }
+        const box=(lbl,val,sub)=>`<div style="flex:1;text-align:center;"><div style="${M}">${lbl}</div><div class="mono" style="font-size:13px;font-weight:700;margin-top:2px;">${val}</div>${sub?`<div style="font-size:9px;color:var(--muted);">${sub}</div>`:''}</div>`;
+        dailyHTML=wrap(`
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-size:12px;font-weight:700;">🎯 ${daysLeft} day${daysLeft===1?'':'s'} to salary <span style="color:var(--muted);font-weight:500;">· ${fmtDate(plan.date)}</span></div>
+            <div style="font-size:11px;font-weight:700;color:${pillCol};">${pillTxt}</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">
+            <span style="${M}">Today</span>
+            <span class="mono" style="color:${tCol};font-weight:700;">Rs ${fmt(tSpent)} / Rs ${fmt(limit)}</span>
+          </div>
+          <div style="height:6px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;"><div style="height:100%;width:${tPct}%;background:${tCol};border-radius:99px;"></div></div>
+          <div style="font-size:11px;color:${tCol};margin:4px 0 10px;">${tSpent>limit+0.5?'Over today\'s limit by Rs '+fmt(tSpent-limit):'Rs '+fmt(Math.max(0,tLeft))+' left to spend today'}</div>
+          <div style="display:flex;gap:6px;padding:8px 0;border-top:1px solid rgba(255,255,255,.08);border-bottom:${tips.length?'1px solid rgba(255,255,255,.08)':'none'};">
+            ${box(fixed?'Daily':'Safe / day','Rs '+fmt(limit),fixed?'':'auto')}
+            ${box('Needed','Rs '+fmt(needed),'for '+daysLeft+' days')}
+            ${box('Lasts',lasts+' day'+(lasts===1?'':'s'),'at this rate')}
+          </div>
+          ${tips.length?`<div style="font-size:11px;line-height:1.5;margin-top:8px;color:var(--muted);">${tips.map(t=>'💡 '+t).join('<br>')}</div>`:''}
+        `);
+      }
     }
     budgetHTML+=`<div class="bcard" style="background:${b.color}14;border-color:${b.color}30;">
       <div class="bcard-hd">
@@ -1015,6 +1076,20 @@ function filterPlat(id){hFilterPlat=id;renderHistory();}
 function renderSetup(){
   const el=document.getElementById('screen-setup');
   const acc=getAccounts();
+  function planList(){
+    const bl=acc.budgets.filter(x=>!x.deleted);
+    if(!bl.length)return '<div style="padding:12px 0;font-size:13px;color:var(--muted);">Add a budget first.</div>';
+    const plans=getPlans();
+    return bl.map(b=>{
+      const p=plans[b.id];
+      const sum=p&&p.date?(p.on?`On · until ${fmtDate(p.date)} · ${p.daily>0?'Rs '+fmt(p.daily)+'/day':'auto daily'}`:'Off (saved: until '+fmtDate(p.date)+')'):'Not set';
+      return `<div class="srow"><div><div class="srow-l">${b.icon} ${b.name}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">${sum}</div></div>
+      <div class="srow-r">
+        ${p&&p.date?`<button class="icon-btn" onclick="togglePlan('${b.id}')">${p.on?'Turn off':'Turn on'}</button>`:''}
+        <button class="icon-btn" onclick="openBudgetPlan('${b.id}')">${p&&p.date?'Edit':'Set up'}</button>
+      </div></div>`;
+    }).join('');
+  }
   function acctList(arr,type){
     if(!arr.length)return '<div style="padding:12px 0;font-size:13px;color:var(--muted);">None yet. Add one below.</div>';
     return arr.map(a=>`<div class="srow">
@@ -1049,6 +1124,9 @@ function renderSetup(){
         <button class="btn btn-green" onclick="addAccount('budgets')">+ Add Budget</button>
       </div>
     </div>
+
+    <div class="stitle">🎯 Daily Budget Plans <span class="stitle-line"></span></div>
+    <div class="card">${planList()}</div>
 
     <div class="stitle">🏷️ Spending Heads <span class="stitle-line"></span></div>
     <div class="card">
@@ -1115,6 +1193,33 @@ function showModal(html){
 function closeModal(ev){if(ev&&ev.target!==ev.currentTarget)return;const m=document.getElementById('setup-modal');if(m)m.innerHTML='';}
 function closeModalForce(){const m=document.getElementById('setup-modal');if(m)m.innerHTML='';}
 
+function openBudgetPlan(bid){
+  const b=getBudget(bid);if(!b)return;
+  const p=getPlans()[bid]||{on:true,date:'',daily:0};
+  showModal(`
+    <div style="font-size:16px;font-weight:800;margin-bottom:6px;">${b.icon} ${b.name} — Daily Plan</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Pick when you get your next salary and how much you want to spend per day from this budget. Leave the daily amount empty to let the app calculate it from what's left.</div>
+    <div class="fg"><label class="fl">🗓️ Next salary date</label><input class="fi" type="date" id="plan-date" value="${p.date||''}" min="${localDateStr()}"></div>
+    <div class="fg"><label class="fl">💵 Daily budget (Rs, optional)</label><input class="fi" type="number" id="plan-daily" inputmode="numeric" value="${p.daily>0?p.daily:''}" placeholder="Empty = auto"></div>
+    <div class="fg"><label class="fl" style="display:flex;align-items:center;gap:8px;"><input type="checkbox" id="plan-on" ${p.on!==false?'checked':''}> Show daily plan on dashboard</label></div>
+    <div class="err-msg" id="modal-err"></div>
+    <button class="btn btn-primary" style="margin-top:12px;" onclick="saveBudgetPlan('${bid}')">Save Plan</button>
+  `);
+}
+function saveBudgetPlan(bid){
+  const date=(document.getElementById('plan-date')||{}).value;
+  const daily=parseFloat((document.getElementById('plan-daily')||{}).value)||0;
+  const on=!!(document.getElementById('plan-on')||{}).checked;
+  if(!date){const e=document.getElementById('modal-err');if(e){e.textContent='Pick the next salary date';e.classList.add('show');}return;}
+  if(daily<0){const e=document.getElementById('modal-err');if(e){e.textContent='Daily amount cannot be negative';e.classList.add('show');}return;}
+  const p=getPlans();p[bid]={on,date,daily};savePlans(p);
+  closeModalForce();renderSetup();toast('Daily plan saved','ok');
+}
+function togglePlan(bid){
+  const p=getPlans();if(!p[bid])return;
+  p[bid].on=!p[bid].on;savePlans(p);renderSetup();
+  toast(p[bid].on?'Daily plan on':'Daily plan off','ok');
+}
 function addAccount(type){
   const typeLabel={budgets:'Budget',heads:'Spending Head',platforms:'Platform'}[type];
   const iconOpts=ICONS.map((ic,i)=>`<button style="font-size:22px;background:none;border:1px solid var(--border);border-radius:8px;width:40px;height:40px;cursor:pointer;" onclick="setNewIcon('${ic}')" id="new-ico-${i}">${ic}</button>`).join('');
@@ -1255,7 +1360,7 @@ function saveBudgCor(){
    DATA EXPORT / IMPORT / RESET
 ═══════════════════════════════════════ */
 function exportData(){
-  const data={accounts:getAccounts(),entries:getEntries(),balances:getPlatformBalances(),bbudgets:getBudgetBalances(),salDate:getSalaryDate()};
+  const data={accounts:getAccounts(),entries:getEntries(),balances:getPlatformBalances(),bbudgets:getBudgetBalances(),salDate:getSalaryDate(),plans:getPlans()};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`paisa-backup-${localDateStr()}.json`;a.click();
 }
@@ -1272,6 +1377,7 @@ function importData(){
         if(d.balances)savePlatformBalances(d.balances);
         if(d.bbudgets)saveBudgetBalances(d.bbudgets);
         if(d.salDate)saveSalaryDate(d.salDate);
+        if(d.plans)savePlans(d.plans);
         renderSetup();renderDashboard();toast('Data imported!','ok');
       }catch{toast('Invalid file','err');}
     };reader.readAsText(file);
